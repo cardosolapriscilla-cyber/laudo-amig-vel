@@ -1,34 +1,19 @@
-const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+import { supabase } from "@/integrations/supabase/client";
 
-export async function callClaude(systemPrompt: string, userMessage: string): Promise<string> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error("Chave da API Anthropic não configurada. Adicione VITE_ANTHROPIC_API_KEY nas configurações.");
-  }
-
-  const response = await fetch(CLAUDE_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1500,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
-    }),
+async function callClaude(systemPrompt: string, userMessage: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("analyze-exam", {
+    body: { systemPrompt, userMessage },
   });
 
-  if (!response.ok) {
-    throw new Error(`Erro na API: ${response.status}`);
+  if (error) {
+    throw new Error(`Erro ao chamar a IA: ${error.message}`);
   }
 
-  const data = await response.json();
-  return data.content[0].text;
+  if (data.error) {
+    throw new Error(data.error);
+  }
+
+  return data.text;
 }
 
 export const SYSTEM_EXPLICADOR = `
