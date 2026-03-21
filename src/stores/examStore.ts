@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Exame, PerfilSaude } from "@/types/health";
 
 interface ExamStore {
@@ -39,21 +40,28 @@ const MOCK_EXAMES: Exame[] = [
   },
 ];
 
-export const useExamStore = create<ExamStore>((set) => ({
-  exames: MOCK_EXAMES,
-  perfil: {
-    nome: "Ana",
-    dataNascimento: "1990-05-12",
-    sexoBiologico: "feminino",
-    condicoes: [],
-    historicoFamiliar: "",
-  },
-  addExame: (exame) =>
-    set((state) => ({ exames: [exame, ...state.exames] })),
-  updateExame: (id, updates) =>
-    set((state) => ({
-      exames: state.exames.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-    })),
-  setPerfil: (updates) =>
-    set((state) => ({ perfil: { ...state.perfil, ...updates } })),
-}));
+export const useExamStore = create<ExamStore>()(
+  persist(
+    (set) => ({
+      exames: MOCK_EXAMES,
+      perfil: {
+        nome: "Ana",
+        dataNascimento: "1990-05-12",
+        sexoBiologico: "feminino",
+        condicoes: [],
+        historicoFamiliar: "",
+      },
+      addExame: (exame) =>
+        set((state) => ({ exames: [exame, ...state.exames] })),
+      updateExame: (id, updates) =>
+        set((state) => ({
+          exames: state.exames.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+        })),
+      setPerfil: (updates) =>
+        set((state) => ({ perfil: { ...state.perfil, ...updates } })),
+    }),
+    {
+      name: "laudo-amigavel-storage",
+    }
+  )
+);
