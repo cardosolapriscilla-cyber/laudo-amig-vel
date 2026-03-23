@@ -34,7 +34,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1500,
+        max_tokens: 2000,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       }),

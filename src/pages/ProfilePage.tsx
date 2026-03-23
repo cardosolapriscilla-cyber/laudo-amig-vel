@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const CONDICOES = [
-  "Diabetes", "Hipertensão", "Asma", "Colesterol alto",
-  "Hipotireoidismo", "Ansiedade", "Depressão", "Outro",
+  "Diabetes", "Hipertensão", "Hipotireoidismo", "Dislipidemia",
+  "Asma", "Ansiedade", "Depressão", "Outro",
 ];
 
 export default function ProfilePage() {
