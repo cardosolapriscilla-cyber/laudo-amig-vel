@@ -9,6 +9,7 @@ import UploadPage from "./pages/UploadPage";
 import ResultPage from "./pages/ResultPage";
 import EvolutionPage from "./pages/EvolutionPage";
 import ProfilePage from "./pages/ProfilePage";
+import ScorePage from "./pages/ScorePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/resultado/:id" element={<ResultPage />} />
             <Route path="/evolucao/:id" element={<EvolutionPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/score" element={<ScorePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>
