@@ -27,6 +27,7 @@ const App = () => (
             <Route path="/resultado/:id" element={<ResultPage />} />
             <Route path="/evolucao/:id" element={<EvolutionPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/score" element={<ScorePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>
