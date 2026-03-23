@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Image, FileUp, Check, Loader2 } from "lucide-react";
 import { useExamStore } from "@/stores/examStore";
@@ -29,14 +29,29 @@ function detectType(text: string): { tipo: TipoExame; nome: string } {
   return { tipo: "outros", nome: "Exame Médico" };
 }
 
+const loadingMessages = [
+  "Lendo seu exame com cuidado...",
+  "Identificando os parâmetros...",
+  "Preparando sua explicação...",
+];
+
 export default function UploadPage() {
   const navigate = useNavigate();
-  const { addExame } = useExamStore();
-  const [step, setStep] = useState<"choose" | "text" | "loading" | "detected">("choose");
+  const { addExame, perfil } = useExamStore();
+  const [step, setStep] = useState<"choose" | "text" | "detecting" | "detected" | "analyzing">("choose");
   const [textoLaudo, setTextoLaudo] = useState("");
   const [detected, setDetected] = useState<{ tipo: TipoExame; nome: string } | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Rotating messages
+  useEffect(() => {
+    if (step !== "analyzing" && step !== "detecting") return;
+    const interval = setInterval(() => {
+      setLoadingMsgIdx((prev) => (prev + 1) % loadingMessages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [step]);
 
   const handleUploadOption = () => {
     setStep("text");
@@ -45,17 +60,19 @@ export default function UploadPage() {
 
   const handleDetect = () => {
     if (!textoLaudo.trim()) return;
-    setStep("loading");
+    setStep("detecting");
+    setLoadingMsgIdx(0);
     setTimeout(() => {
       const det = detectType(textoLaudo);
       setDetected(det);
       setStep("detected");
-    }, 1200);
+    }, 1500);
   };
 
   const handleAnalyze = async () => {
     if (!detected) return;
-    setIsAnalyzing(true);
+    setStep("analyzing");
+    setLoadingMsgIdx(0);
 
     const newExame = {
       id: Date.now().toString(),
@@ -67,11 +84,18 @@ export default function UploadPage() {
     };
 
     try {
-      const resultado = await explicarLaudo(textoLaudo);
-      addExame({ ...newExame, resultado, resumo: resultado.resumo_geral });
+      const perfilStr = `${perfil.nome}, ${perfil.sexoBiologico}, nasc. ${perfil.dataNascimento}. Condições: ${perfil.condicoes.join(", ") || "nenhuma"}`;
+      const resultado = await explicarLaudo(textoLaudo, perfilStr);
+      addExame({
+        ...newExame,
+        resultado,
+        resumo: resultado.resumo_geral,
+        sistema: resultado.sistema,
+        laboratorio: resultado.origem?.laboratorio || "Não informado",
+        data: resultado.origem?.data_coleta || newExame.data,
+      });
       navigate(`/resultado/${newExame.id}`);
     } catch {
-      // If API fails, save without result
       addExame({ ...newExame, resumo: "Análise pendente" });
       navigate(`/resultado/${newExame.id}`);
     }
@@ -142,10 +166,10 @@ export default function UploadPage() {
         </div>
       )}
 
-      {step === "loading" && (
+      {step === "detecting" && (
         <div className="mt-16 text-center animate-reveal">
           <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
-          <p className="text-sm text-muted-foreground mt-4">Lendo seu exame com cuidado...</p>
+          <p className="text-sm text-muted-foreground mt-4">Identificando tipo de exame...</p>
         </div>
       )}
 
@@ -163,20 +187,22 @@ export default function UploadPage() {
 
           <button
             onClick={handleAnalyze}
-            disabled={isAnalyzing}
             className="mt-6 w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium text-sm
-              shadow-md shadow-primary/15 disabled:opacity-60
-              hover:shadow-lg active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
+              shadow-md shadow-primary/15
+              hover:shadow-lg active:scale-[0.97] transition-all duration-200"
           >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Analisando com IA...
-              </>
-            ) : (
-              "Gerar explicação"
-            )}
+            Gerar explicação
           </button>
+        </div>
+      )}
+
+      {step === "analyzing" && (
+        <div className="mt-16 text-center animate-reveal">
+          <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
+          <p className="text-sm text-muted-foreground mt-4">{loadingMessages[loadingMsgIdx]}</p>
+          <div className="mt-3 w-48 h-1 bg-muted rounded-full mx-auto overflow-hidden">
+            <div className="h-full bg-primary/40 rounded-full animate-pulse" style={{ width: "60%" }} />
+          </div>
         </div>
       )}
     </div>
