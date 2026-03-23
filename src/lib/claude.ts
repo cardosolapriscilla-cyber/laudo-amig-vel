@@ -13,7 +13,10 @@ async function callClaude(systemPrompt: string, userMessage: string): Promise<st
     throw new Error(data.error);
   }
 
-  return data.text;
+  // Strip markdown code fences if present
+  let text = data.text;
+  text = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
+  return text;
 }
 
 export const SYSTEM_EXPLICADOR = `
