@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
 import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check } from "lucide-react";
-import { explicarLaudo } from "@/lib/claude";
+import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
-import type { ResultadoExplicador, Achado } from "@/types/health";
+import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
 import CheckinSheet from "@/components/CheckinSheet";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const statusConfig = {
   normal: { icon: CircleCheck, label: "Dentro do esperado", class: "status-normal" },
