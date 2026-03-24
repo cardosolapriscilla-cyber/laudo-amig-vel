@@ -204,6 +204,26 @@ export default function ResultPage() {
     (e) => e.id !== id && e.tipo === exame?.tipo && e.nome === exame?.nome
   );
   const hasEvolution = previousExams.length > 0;
+  const [evoLoading, setEvoLoading] = useState(false);
+
+  // Poll for evolutivo result (generated in background by UploadPage)
+  const resultadoEvolutivo = exame?.resultadoEvolutivo ?? null;
+
+  // If has previous exams but no evolutivo yet, trigger generation
+  useEffect(() => {
+    if (hasEvolution && !resultadoEvolutivo && exame && activeTab === "evolucao" && !evoLoading) {
+      setEvoLoading(true);
+      const allRelated = [...previousExams, exame].sort((a, b) => a.data.localeCompare(b.data));
+      const perfilStr = `${perfil.nome}, ${perfil.sexoBiologico}, nasc. ${perfil.dataNascimento}`;
+      compararExames(
+        allRelated.map((e) => ({ data: e.data, texto: e.textoOriginal, laboratorio: e.laboratorio })),
+        perfilStr
+      ).then((res) => {
+        updateExame(exame.id, { resultadoEvolutivo: res });
+      }).catch(() => {})
+        .finally(() => setEvoLoading(false));
+    }
+  }, [activeTab, hasEvolution, resultadoEvolutivo?.narrativa_geral]);
 
   // Rotating loading messages
   useEffect(() => {
