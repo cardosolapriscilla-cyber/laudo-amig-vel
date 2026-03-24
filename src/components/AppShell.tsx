@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Upload, User } from "lucide-react";
+import { Home, Upload, Activity, User } from "lucide-react";
 
 const navItems = [
   { path: "/", icon: Home, label: "Início" },
   { path: "/upload", icon: Upload, label: "Enviar" },
+  { path: "/score", icon: Activity, label: "Saúde" },
   { path: "/perfil", icon: User, label: "Perfil" },
 ];
 
