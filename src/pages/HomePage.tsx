@@ -40,6 +40,13 @@ function MiniScoreRing({ score }: { score: number }) {
 export default function HomePage() {
   const { exames, perfil, scores } = useExamStore();
   const navigate = useNavigate();
+
+  // Redirect to onboarding if profile is default
+  if (perfil.nome === "Ana" && perfil.dataNascimento === "1978-05-12") {
+    navigate("/onboarding", { replace: true });
+    return null;
+  }
+
   const sortedExames = [...exames].sort((a, b) => b.data.localeCompare(a.data));
   const latest = sortedExames[0];
   const rest = sortedExames.slice(1);
