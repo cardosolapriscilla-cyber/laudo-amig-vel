@@ -42,6 +42,7 @@ export default function CheckinSheet({ exameId, onComplete, onSkip }: CheckinPro
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [calculating, setCalculating] = useState(false);
   const [scoreError, setScoreError] = useState(false);
+  const { addCheckin, addScore, exames, perfil } = useExamStore();
 
   const handleSelect = (value: string) => {
     const q = questions[step];
