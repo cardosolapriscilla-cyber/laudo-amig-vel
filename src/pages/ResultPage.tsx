@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
 import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check } from "lucide-react";
-import { explicarLaudo } from "@/lib/claude";
+import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
-import type { ResultadoExplicador, Achado } from "@/types/health";
+import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
 import CheckinSheet from "@/components/CheckinSheet";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const statusConfig = {
   normal: { icon: CircleCheck, label: "Dentro do esperado", class: "status-normal" },
@@ -185,6 +186,179 @@ function GlossaryChips({ glossario }: { glossario: { termo: string; definicao: s
     </div>
   );
 }
+// --- Evolution tab components (inline) ---
+
+const tendenciaConfig = {
+  melhora: { icon: TrendingUp, label: "Melhora", color: "text-primary", bg: "bg-sage-light" },
+  estavel: { icon: Minus, label: "Estável", color: "text-muted-foreground", bg: "bg-muted" },
+  atencao: { icon: AlertTriangle, label: "Atenção", color: "text-[hsl(var(--attention))]", bg: "bg-[hsl(var(--attention-bg))]" },
+  piora: { icon: TrendingDown, label: "Piora", color: "text-[hsl(var(--follow-up))]", bg: "bg-[hsl(var(--follow-up-bg))]" },
+};
+
+function Sparkline({ valores }: { valores: { data: string; valor: number; referencia_min?: number | null; referencia_max?: number | null }[] }) {
+  if (valores.length < 2) return null;
+  const w = 120, h = 32, padding = 4;
+  const vals = valores.map((v) => v.valor);
+  const min = Math.min(...vals) * 0.9;
+  const max = Math.max(...vals) * 1.1;
+  const range = max - min || 1;
+  const points = valores.map((v, i) => {
+    const x = padding + (i / (valores.length - 1)) * (w - 2 * padding);
+    const y = h - padding - ((v.valor - min) / range) * (h - 2 * padding);
+    return `${x},${y}`;
+  });
+  const refMin = valores[0]?.referencia_min;
+  const refMax = valores[0]?.referencia_max;
+  let refY1: number | null = null, refY2: number | null = null;
+  if (refMin != null && refMax != null) {
+    refY1 = h - padding - ((refMax - min) / range) * (h - 2 * padding);
+    refY2 = h - padding - ((refMin - min) / range) * (h - 2 * padding);
+  }
+  return (
+    <svg width={w} height={h} className="shrink-0">
+      {refY1 != null && refY2 != null && <rect x={0} y={refY1} width={w} height={refY2 - refY1} fill="hsl(var(--sage-light))" rx={2} />}
+      <polyline points={points.join(" ")} fill="none" stroke="hsl(var(--primary))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {valores.map((v, i) => {
+        const x = padding + (i / (valores.length - 1)) * (w - 2 * padding);
+        const y = h - padding - ((v.valor - min) / range) * (h - 2 * padding);
+        return <circle key={i} cx={x} cy={y} r={3} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={1.5} />;
+      })}
+    </svg>
+  );
+}
+
+function EvoParametroCard({ param }: { param: ParametroEvolutivo }) {
+  const config = tendenciaConfig[param.tendencia];
+  const Icon = config.icon;
+  const lastTwo = param.valores.slice(-2);
+  return (
+    <div className="bg-card rounded-lg p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-medium text-foreground">{param.nome}</p>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${config.bg} ${config.color}`}>
+          <Icon className="w-3 h-3" /> {config.label}
+        </span>
+      </div>
+      <div className="flex items-center gap-4">
+        <Sparkline valores={param.valores} />
+        <div className="flex-1">
+          {lastTwo.length === 2 && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>{lastTwo[0].valor} {param.unidade}</span>
+              <span className="text-xs">→</span>
+              <span className="text-foreground font-medium">{lastTwo[1].valor} {param.unidade}</span>
+            </div>
+          )}
+          <span className={`text-xs font-medium ${config.color}`}>
+            {param.variacao_percentual > 0 ? "+" : ""}{param.variacao_percentual.toFixed(1)}%
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{param.comentario}</p>
+    </div>
+  );
+}
+
+function EvoOrganCard({ evolucao }: { evolucao: EvolucaoOrgao }) {
+  return (
+    <div className="bg-card rounded-lg p-4 shadow-sm">
+      <p className="text-sm font-medium text-foreground mb-3">{evolucao.orgao}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        {evolucao.historico.map((h, i) => {
+          const currentIdx = evolucao.trilha.indexOf(h.estado);
+          return (
+            <div key={i} className="flex items-center gap-2">
+              {i > 0 && <span className="text-muted-foreground text-xs">→</span>}
+              <div className="text-center">
+                <span className={`inline-block text-[10px] px-2 py-1 rounded-full ${
+                  currentIdx <= 0 ? "bg-sage-light text-sage-muted" :
+                  currentIdx === 1 ? "bg-[hsl(var(--attention-bg))] text-[hsl(var(--attention))]" :
+                  "bg-[hsl(var(--follow-up-bg))] text-[hsl(var(--follow-up))]"
+                } font-medium`}>{h.estado}</span>
+                <p className="text-[9px] text-muted-foreground mt-0.5">
+                  {new Date(h.data + "T12:00:00").toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function EvolutionTabContent({ resultadoEvolutivo, loading, exame, previousExams }: {
+  resultadoEvolutivo: ResultadoEvolutivo | null;
+  loading: boolean;
+  exame: any;
+  previousExams: any[];
+}) {
+  if (loading || !resultadoEvolutivo) {
+    return (
+      <div className="mt-16 text-center animate-reveal">
+        <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
+        <p className="text-sm text-muted-foreground mt-4">Preparando sua evolução...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 space-y-6">
+      <div className="bg-sage-light rounded-lg p-4 animate-reveal">
+        <p className="text-sm text-foreground leading-relaxed font-serif">{resultadoEvolutivo.narrativa_geral}</p>
+      </div>
+
+      {resultadoEvolutivo.parametros?.length > 0 && (
+        <div className="animate-reveal animate-reveal-delay-1">
+          <h2 className="text-lg font-semibold mb-3">Parâmetros comparados</h2>
+          <div className="space-y-3">
+            {resultadoEvolutivo.parametros.map((param, i) => (
+              <EvoParametroCard key={i} param={param} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {resultadoEvolutivo.evolucao_orgao && resultadoEvolutivo.evolucao_orgao.length > 0 && (
+        <div className="animate-reveal animate-reveal-delay-2">
+          <h2 className="text-lg font-semibold mb-3">Evolução por órgão</h2>
+          <div className="space-y-3">
+            {resultadoEvolutivo.evolucao_orgao.map((evo, i) => (
+              <EvoOrganCard key={i} evolucao={evo} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {resultadoEvolutivo.alertas?.length > 0 && (
+        <div className="animate-reveal animate-reveal-delay-3">
+          <h2 className="text-lg font-semibold mb-3">Alertas</h2>
+          <div className="space-y-2">
+            {resultadoEvolutivo.alertas.map((a, i) => (
+              <div key={i} className="bg-[hsl(var(--attention-bg))] rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[hsl(var(--attention))] mt-0.5 shrink-0" />
+                <p className="text-sm text-foreground">{a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {resultadoEvolutivo.proximo_passo && (
+        <div className="bg-card rounded-lg p-4 shadow-sm border-l-4 border-primary animate-reveal animate-reveal-delay-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Próximo passo</p>
+          <p className="text-sm text-foreground">{resultadoEvolutivo.proximo_passo}</p>
+        </div>
+      )}
+
+      <div className="border-t pt-4">
+        <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+          ⚕️ Este app não substitui consulta médica.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function ResultPage() {
   const { id } = useParams<{ id: string }>();
@@ -203,6 +377,26 @@ export default function ResultPage() {
     (e) => e.id !== id && e.tipo === exame?.tipo && e.nome === exame?.nome
   );
   const hasEvolution = previousExams.length > 0;
+  const [evoLoading, setEvoLoading] = useState(false);
+
+  // Poll for evolutivo result (generated in background by UploadPage)
+  const resultadoEvolutivo = exame?.resultadoEvolutivo ?? null;
+
+  // If has previous exams but no evolutivo yet, trigger generation
+  useEffect(() => {
+    if (hasEvolution && !resultadoEvolutivo && exame && activeTab === "evolucao" && !evoLoading) {
+      setEvoLoading(true);
+      const allRelated = [...previousExams, exame].sort((a, b) => a.data.localeCompare(b.data));
+      const perfilStr = `${perfil.nome}, ${perfil.sexoBiologico}, nasc. ${perfil.dataNascimento}`;
+      compararExames(
+        allRelated.map((e) => ({ data: e.data, texto: e.textoOriginal, laboratorio: e.laboratorio })),
+        perfilStr
+      ).then((res) => {
+        updateExame(exame.id, { resultadoEvolutivo: res });
+      }).catch(() => {})
+        .finally(() => setEvoLoading(false));
+    }
+  }, [activeTab, hasEvolution, resultadoEvolutivo?.narrativa_geral]);
 
   // Rotating loading messages
   useEffect(() => {
@@ -291,7 +485,7 @@ export default function ResultPage() {
             Explicação
           </button>
           <button
-            onClick={() => { setActiveTab("evolucao"); navigate(`/evolucao/${exame.id}`); }}
+            onClick={() => setActiveTab("evolucao")}
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${activeTab === "evolucao" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
           >
             Evolução
@@ -402,6 +596,16 @@ export default function ResultPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Evolução tab content */}
+      {resultado && activeTab === "evolucao" && (
+        <EvolutionTabContent
+          resultadoEvolutivo={resultadoEvolutivo}
+          loading={evoLoading}
+          exame={exame}
+          previousExams={previousExams}
+        />
       )}
 
       {!loading && !resultado && !error && (
