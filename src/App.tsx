@@ -24,6 +24,7 @@ const App = () => (
         <AppShell>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/resultado/:id" element={<ResultPage />} />
             <Route path="/evolucao/:id" element={<EvolutionPage />} />
