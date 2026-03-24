@@ -312,7 +312,7 @@ export default function ResultPage() {
             Explicação
           </button>
           <button
-            onClick={() => { setActiveTab("evolucao"); navigate(`/evolucao/${exame.id}`); }}
+            onClick={() => setActiveTab("evolucao")}
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${activeTab === "evolucao" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
           >
             Evolução
