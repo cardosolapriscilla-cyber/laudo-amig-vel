@@ -150,6 +150,11 @@ export default function CheckinSheet({ exameId, onComplete, onSkip }: CheckinPro
                 "Ver meu exame"
               )}
             </button>
+            {scoreError && (
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Não conseguimos calcular seu score agora. Você pode tentar novamente na aba Saúde.
+              </p>
+            )}
           )}
           <button
             onClick={onSkip}
