@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useExamStore } from "@/stores/examStore";
 import { ExamCard } from "@/components/ExamCard";
 import { Plus, Leaf, FlaskConical, User } from "lucide-react";
@@ -40,6 +41,14 @@ function MiniScoreRing({ score }: { score: number }) {
 export default function HomePage() {
   const { exames, perfil, scores } = useExamStore();
   const navigate = useNavigate();
+  const isDefault = perfil.nome === "Ana" && perfil.dataNascimento === "1978-05-12";
+
+  useEffect(() => {
+    if (isDefault) navigate("/onboarding", { replace: true });
+  }, [isDefault, navigate]);
+
+  if (isDefault) return null;
+
   const sortedExames = [...exames].sort((a, b) => b.data.localeCompare(a.data));
   const latest = sortedExames[0];
   const rest = sortedExames.slice(1);
@@ -62,7 +71,7 @@ export default function HomePage() {
       </div>
 
       {/* Score Card */}
-      {latestScore && (
+      {latestScore ? (
         <button
           onClick={() => navigate("/score")}
           className="w-full mt-6 bg-card rounded-xl p-5 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 text-left animate-reveal animate-reveal-delay-1"
@@ -72,7 +81,6 @@ export default function HomePage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Índice de Saúde</p>
               <p className="text-sm text-foreground mt-1 leading-relaxed">{latestScore.frase_contexto}</p>
-              {/* Mini pilar bars */}
               <div className="mt-3 space-y-1.5">
                 {latestScore.pilares.slice(0, 4).map((p) => (
                   <div key={p.nome} className="flex items-center gap-2">
@@ -97,6 +105,15 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate('/upload')}
+          className="w-full mt-6 bg-card rounded-xl p-5 shadow-sm border border-dashed border-border text-left animate-reveal animate-reveal-delay-1"
+        >
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Índice de Saúde</p>
+          <p className="text-sm text-foreground mt-2">Envie seu primeiro exame e responda ao check-in para ver seu Índice de Saúde.</p>
+          <p className="text-xs text-primary mt-3 font-medium">Enviar exame →</p>
         </button>
       )}
 

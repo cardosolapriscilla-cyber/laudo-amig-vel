@@ -10,6 +10,7 @@ import ResultPage from "./pages/ResultPage";
 import EvolutionPage from "./pages/EvolutionPage";
 import ProfilePage from "./pages/ProfilePage";
 import ScorePage from "./pages/ScorePage";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
         <AppShell>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/resultado/:id" element={<ResultPage />} />
             <Route path="/evolucao/:id" element={<EvolutionPage />} />
