@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check } from "lucide-react";
+import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check, Share2 } from "lucide-react";
 import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
 import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
@@ -570,13 +570,31 @@ export default function ResultPage() {
             <div className="animate-reveal animate-reveal-delay-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold">Perguntas para levar ao médico</h2>
-                <button
-                  onClick={copyQuestions}
-                  className="flex items-center gap-1 text-xs text-primary active:scale-95 transition-transform"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? "Copiado" : "Copiar"}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={async () => {
+                      const text = `Perguntas para minha próxima consulta:\n\n${resultado.perguntas_para_medico.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n— Laudo Amigável`;
+                      if (navigator.share) {
+                        await navigator.share({ title: 'Perguntas para o médico', text });
+                      } else {
+                        navigator.clipboard.writeText(text);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-xs text-primary active:scale-95 transition-transform"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Compartilhar
+                  </button>
+                  <button
+                    onClick={copyQuestions}
+                    className="flex items-center gap-1 text-xs text-primary active:scale-95 transition-transform"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? "Copiado" : "Copiar"}
+                  </button>
+                </div>
               </div>
               <div className="bg-card rounded-lg p-4 shadow-sm border border-border space-y-3">
                 {resultado.perguntas_para_medico.map((q, i) => (
