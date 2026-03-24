@@ -238,7 +238,7 @@ export default function EvolutionPage() {
       {loading && (
         <div className="mt-16 text-center animate-reveal">
           <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
-          <p className="text-sm text-muted-foreground mt-4">Comparando seus exames...</p>
+          <p className="text-sm text-muted-foreground mt-4">{evolutionLoadingMessages[loadingMsgIdx]}</p>
         </div>
       )}
 
