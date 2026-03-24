@@ -82,7 +82,7 @@ export default function CheckinSheet({ exameId, onComplete, onSkip }: CheckinPro
       });
       addScore(score);
     } catch {
-      // Score calculation failed silently
+      setScoreError(true);
     }
 
     setCalculating(false);
