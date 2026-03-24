@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check } from "lucide-react";
+import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check, Share2 } from "lucide-react";
 import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
 import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
