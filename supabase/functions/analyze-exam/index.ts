@@ -25,6 +25,11 @@ serve(async (req) => {
 
     const { systemPrompt, userMessage } = await req.json();
 
+    const MAX_CHARS = 6000;
+    const truncatedMessage = userMessage.length > MAX_CHARS
+      ? userMessage.slice(0, MAX_CHARS) + '\n\n[Texto truncado por tamanho. Analise apenas o conteúdo disponível acima.]'
+      : userMessage;
+
     const response = await fetch(CLAUDE_API_URL, {
       method: "POST",
       headers: {
@@ -34,9 +39,9 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 2000,
+        max_tokens: 2500,
         system: systemPrompt,
-        messages: [{ role: "user", content: userMessage }],
+        messages: [{ role: "user", content: truncatedMessage }],
       }),
     });
 
