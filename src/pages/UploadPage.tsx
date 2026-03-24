@@ -86,15 +86,31 @@ export default function UploadPage() {
     try {
       const perfilStr = `${perfil.nome}, ${perfil.sexoBiologico}, nasc. ${perfil.dataNascimento}. Condições: ${perfil.condicoes.join(", ") || "nenhuma"}`;
       const resultado = await explicarLaudo(textoLaudo, perfilStr);
-      addExame({
+      const savedExame = {
         ...newExame,
         resultado,
         resumo: resultado.resumo_geral,
         sistema: resultado.sistema,
         laboratorio: resultado.origem?.laboratorio || "Não informado",
         data: resultado.origem?.data_coleta || newExame.data,
-      });
+      };
+      addExame(savedExame);
       navigate(`/resultado/${newExame.id}`);
+
+      // Background: generate evolutivo if previous exams exist
+      const { exames } = useExamStore.getState();
+      const related = exames.filter(
+        (e) => e.id !== newExame.id && e.tipo === savedExame.tipo && e.nome === savedExame.nome
+      );
+      if (related.length > 0) {
+        const allRelated = [...related, savedExame].sort((a, b) => a.data.localeCompare(b.data));
+        compararExames(
+          allRelated.map((e) => ({ data: e.data, texto: e.textoOriginal, laboratorio: e.laboratorio })),
+          perfilStr
+        ).then((evoResult) => {
+          useExamStore.getState().updateExame(newExame.id, { resultadoEvolutivo: evoResult });
+        }).catch(() => {});
+      }
     } catch {
       addExame({ ...newExame, resumo: "Análise pendente" });
       navigate(`/resultado/${newExame.id}`);
