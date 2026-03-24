@@ -361,6 +361,7 @@ function EvolutionTabContent({ resultadoEvolutivo, loading, exame, previousExams
 }
 
 export default function ResultPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { exames, updateExame, perfil } = useExamStore();
   const exame = exames.find((e) => e.id === id);
