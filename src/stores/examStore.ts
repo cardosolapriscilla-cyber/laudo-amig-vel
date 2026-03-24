@@ -14,47 +14,30 @@ interface ExamStore {
   addScore: (score: ResultadoScore) => void;
 }
 
-const MOCK_EXAMES: Exame[] = [
-  {
-    id: "1",
-    tipo: "sangue",
-    nome: "Hemograma Completo",
-    sistema: "Hematológico",
-    data: "2025-01-15",
-    laboratorio: "Lab São Lucas",
-    textoOriginal: "Hemoglobina: 14.2 g/dL (ref: 12.0-16.0)\nHematócrito: 42% (ref: 36-46%)\nLeucócitos: 7.800/mm³ (ref: 4.000-11.000)\nPlaquetas: 245.000/mm³ (ref: 150.000-400.000)\nGlicemia jejum: 92 mg/dL (ref: 70-99)\nColesterol Total: 198 mg/dL (ref: <200)\nLDL: 128 mg/dL (ref: <130)\nHDL: 52 mg/dL (ref: >40)\nTriglicerídeos: 142 mg/dL (ref: <150)",
-    resumo: "Resultados dentro da normalidade",
-  },
-  {
-    id: "2",
-    tipo: "sangue",
-    nome: "Hemograma Completo",
-    sistema: "Hematológico",
-    data: "2024-07-20",
-    laboratorio: "Lab São Lucas",
-    textoOriginal: "Hemoglobina: 13.8 g/dL (ref: 12.0-16.0)\nHematócrito: 41% (ref: 36-46%)\nLeucócitos: 8.200/mm³ (ref: 4.000-11.000)\nPlaquetas: 230.000/mm³ (ref: 150.000-400.000)\nGlicemia jejum: 98 mg/dL (ref: 70-99)\nColesterol Total: 215 mg/dL (ref: <200)\nLDL: 145 mg/dL (ref: <130)\nHDL: 45 mg/dL (ref: >40)\nTriglicerídeos: 168 mg/dL (ref: <150)",
-    resumo: "Colesterol e triglicerídeos elevados",
-  },
-  {
-    id: "3",
-    tipo: "imagem",
-    nome: "Raio-X Tórax",
-    sistema: "Respiratório",
-    data: "2024-11-03",
-    laboratorio: "Clínica Imagem",
-    textoOriginal: "Campos pulmonares limpos, sem consolidações ou infiltrados. Silhueta cardíaca dentro dos limites da normalidade. Seios costofrênicos livres. Traqueia centrada. Estruturas ósseas sem alterações.",
-    resumo: "Sem alterações significativas",
-  },
-];
+// Mock score for demo (uncomment to enable):
+// const DEMO_SCORE: ResultadoScore = {
+//   score_geral: 72,
+//   tendencia: "primeiro_registro",
+//   frase_contexto: "Seus exames clínicos estão bem — sono merece atenção.",
+//   pilares: [
+//     { nome: "Exames clínicos", score: 82, fonte: "objetivo", status: "bom", detalhe: "Hemograma e lipídeos dentro da faixa" },
+//     { nome: "Sono", score: 55, fonte: "autodeclarado", status: "atencao", detalhe: "5-6h por noite, qualidade regular" },
+//     { nome: "Estresse", score: 68, fonte: "autodeclarado", status: "bom", detalhe: "Nível moderado de estresse" },
+//     { nome: "Atividade física", score: 75, fonte: "autodeclarado", status: "bom", detalhe: "150-300 min/semana" },
+//   ],
+//   confiabilidade: { pilares_preenchidos: 4, total_pilares: 6, nivel: "media", mensagem: "Faltam alimentação e adesão preventiva" },
+//   comparacao_populacional: null,
+//   proximo_passo: "Tente dormir 7h por noite nas próximas 2 semanas.",
+// };
 
 export const useExamStore = create<ExamStore>()(
   persist(
     (set) => ({
-      exames: MOCK_EXAMES,
+      exames: [],
       perfil: {
-        nome: "Ana",
-        dataNascimento: "1978-05-12",
-        sexoBiologico: "feminino",
+        nome: "",
+        dataNascimento: "",
+        sexoBiologico: "",
         condicoes: [],
         historicoFamiliar: "",
       },

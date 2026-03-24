@@ -41,7 +41,7 @@ function MiniScoreRing({ score }: { score: number }) {
 export default function HomePage() {
   const { exames, perfil, scores } = useExamStore();
   const navigate = useNavigate();
-  const isDefault = perfil.nome === "Ana" && perfil.dataNascimento === "1978-05-12";
+  const isDefault = !perfil.nome || !perfil.dataNascimento;
 
   useEffect(() => {
     if (isDefault) navigate("/onboarding", { replace: true });

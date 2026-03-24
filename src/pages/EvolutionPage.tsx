@@ -163,6 +163,21 @@ export default function EvolutionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedSystem, setSelectedSystem] = useState<string | null>(null);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+
+  const evolutionLoadingMessages = [
+    "Comparando seus exames...",
+    "Identificando tendências...",
+    "Calculando variações...",
+  ];
+
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setLoadingMsgIdx((prev) => (prev + 1) % evolutionLoadingMessages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     if (relatedExams.length >= 2 && !resultado) {
@@ -223,7 +238,7 @@ export default function EvolutionPage() {
       {loading && (
         <div className="mt-16 text-center animate-reveal">
           <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
-          <p className="text-sm text-muted-foreground mt-4">Comparando seus exames...</p>
+          <p className="text-sm text-muted-foreground mt-4">{evolutionLoadingMessages[loadingMsgIdx]}</p>
         </div>
       )}
 
