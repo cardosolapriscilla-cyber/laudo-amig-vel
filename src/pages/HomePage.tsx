@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useExamStore } from "@/stores/examStore";
 import { ExamCard } from "@/components/ExamCard";
 import { Plus, Leaf, FlaskConical, User } from "lucide-react";
