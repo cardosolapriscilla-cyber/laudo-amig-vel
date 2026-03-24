@@ -360,8 +360,7 @@ function EvolutionTabContent({ resultadoEvolutivo, loading, exame, previousExams
   );
 }
 
-
-  const { id } = useParams<{ id: string }>();
+export default function ResultPage() {
   const navigate = useNavigate();
   const { exames, updateExame, perfil } = useExamStore();
   const exame = exames.find((e) => e.id === id);
