@@ -134,27 +134,29 @@ export default function CheckinSheet({ exameId, onComplete, onSkip }: CheckinPro
 
         <div className="mt-6 space-y-3">
           {isLastStep && hasAnsweredCurrent && (
-            <button
-              onClick={handleFinish}
-              disabled={calculating}
-              className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium text-sm
-                shadow-md shadow-primary/15 disabled:opacity-60
-                hover:shadow-lg active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              {calculating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Calculando seu score...
-                </>
-              ) : (
-                "Ver meu exame"
+            <>
+              <button
+                onClick={handleFinish}
+                disabled={calculating}
+                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium text-sm
+                  shadow-md shadow-primary/15 disabled:opacity-60
+                  hover:shadow-lg active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {calculating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Calculando seu score...
+                  </>
+                ) : (
+                  "Ver meu exame"
+                )}
+              </button>
+              {scoreError && (
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Não conseguimos calcular seu score agora. Você pode tentar novamente na aba Saúde.
+                </p>
               )}
-            </button>
-            {scoreError && (
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                Não conseguimos calcular seu score agora. Você pode tentar novamente na aba Saúde.
-              </p>
-            )}
+            </>
           )}
           <button
             onClick={onSkip}
