@@ -425,6 +425,16 @@ export default function ResultPage() {
         </div>
       )}
 
+      {/* Evolução tab content */}
+      {resultado && activeTab === "evolucao" && (
+        <EvolutionTabContent
+          resultadoEvolutivo={resultadoEvolutivo}
+          loading={evoLoading}
+          exame={exame}
+          previousExams={previousExams}
+        />
+      )}
+
       {!loading && !resultado && !error && (
         <div className="mt-8 animate-reveal">
           <div className="bg-card rounded-lg p-4 shadow-sm">

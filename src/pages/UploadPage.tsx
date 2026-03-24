@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Image, FileUp, Check, Loader2 } from "lucide-react";
 import { useExamStore } from "@/stores/examStore";
-import { explicarLaudo } from "@/lib/claude";
+import { explicarLaudo, compararExames } from "@/lib/claude";
 import type { TipoExame } from "@/types/health";
 
 const uploadOptions = [

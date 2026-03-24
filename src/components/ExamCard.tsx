@@ -44,7 +44,7 @@ export function ExamCard({ exame, featured = false }: { exame: Exame; featured?:
             {exame.nome}
           </p>
           <p className={`text-xs mt-0.5 ${featured ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-            {formatDate(exame.data)} · {exame.laboratorio}
+            {formatDate(exame.data)} · {exame.laboratorio || "Não informado"}
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {exame.sistema && (
