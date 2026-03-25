@@ -101,6 +101,7 @@ export interface PilarScore {
 }
 
 export interface ResultadoScore {
+  data: string; // ISO date string
   score_geral: number;
   tendencia: "subindo" | "estavel" | "caindo" | "primeiro_registro";
   frase_contexto: string;
