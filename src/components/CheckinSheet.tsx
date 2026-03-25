@@ -81,7 +81,7 @@ export default function CheckinSheet({ exameId, onComplete, onSkip }: CheckinPro
         checkin: answers,
         perfilUsuario: perfilStr,
       });
-      addScore(score);
+      addScore({ ...score, data: new Date().toISOString().split("T")[0] });
     } catch {
       setScoreError(true);
     }

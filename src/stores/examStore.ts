@@ -16,6 +16,7 @@ interface ExamStore {
 
 // Mock score for demo (uncomment to enable):
 // const DEMO_SCORE: ResultadoScore = {
+//   data: "2025-03-15",
 //   score_geral: 72,
 //   tendencia: "primeiro_registro",
 //   frase_contexto: "Seus exames clínicos estão bem — sono merece atenção.",
