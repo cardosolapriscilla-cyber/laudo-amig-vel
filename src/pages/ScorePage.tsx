@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
 import { ArrowLeft, FlaskConical, User, ChevronRight } from "lucide-react";
 import type { PilarScore } from "@/types/health";
+import CheckinSheet from "@/components/CheckinSheet";
 
 const statusColor: Record<string, string> = {
   otimo: "bg-primary",
@@ -92,8 +94,11 @@ function PilarBar({ pilar }: { pilar: PilarScore }) {
 
 export default function ScorePage() {
   const navigate = useNavigate();
-  const { scores } = useExamStore();
+  const { scores, exames } = useExamStore();
+  const [showCheckin, setShowCheckin] = useState(false);
   const latestScore = scores[0];
+  const hasExames = exames.length > 0;
+  const lastExameId = exames[0]?.id;
 
   if (!latestScore) {
     return (
@@ -107,9 +112,36 @@ export default function ScorePage() {
           </div>
           <h2 className="text-lg font-medium">Seu score será calculado</h2>
           <p className="text-sm text-muted-foreground mt-2 max-w-[260px] mx-auto">
-            Envie um exame e responda ao check-in rápido para ver seu Índice de Saúde.
+            {hasExames
+              ? "Você já tem exames enviados! Responda ao check-in rápido para calcular seu Índice de Saúde."
+              : "Envie um exame e responda ao check-in rápido para ver seu Índice de Saúde."}
           </p>
+          {hasExames ? (
+            <button
+              onClick={() => setShowCheckin(true)}
+              className="mt-6 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium text-sm
+                shadow-md shadow-primary/15 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+            >
+              Responder check-in
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/upload")}
+              className="mt-6 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium text-sm
+                shadow-md shadow-primary/15 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+            >
+              Enviar meu primeiro exame
+            </button>
+          )}
         </div>
+
+        {showCheckin && lastExameId && (
+          <CheckinSheet
+            exameId={lastExameId}
+            onComplete={() => setShowCheckin(false)}
+            onSkip={() => setShowCheckin(false)}
+          />
+        )}
       </div>
     );
   }
