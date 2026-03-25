@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, FlaskConical, User, ChevronRight } from "lucide-react";
+import { ArrowLeft, FlaskConical, User, AlertTriangle } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts";
 import type { PilarScore } from "@/types/health";
 import CheckinSheet from "@/components/CheckinSheet";
 
@@ -35,26 +36,8 @@ function ScoreRing({ score, size = 160 }: { score: number; size?: number }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--border))"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className="transition-all duration-1000 ease-out"
-        />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--border))" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-all duration-1000 ease-out" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-5xl font-serif font-semibold" style={{ color }}>{score}</span>
@@ -88,6 +71,81 @@ function PilarBar({ pilar }: { pilar: PilarScore }) {
         />
       </div>
       <p className="text-[11px] text-muted-foreground">{pilar.detalhe}</p>
+    </div>
+  );
+}
+
+function formatDateShort(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+}
+
+function ScoreHistoryChart({ scores }: { scores: { data: string; score_geral: number }[] }) {
+  const chartData = useMemo(
+    () =>
+      [...scores]
+        .reverse()
+        .map((s) => ({
+          date: formatDateShort(s.data),
+          score: s.score_geral,
+        })),
+    [scores]
+  );
+
+  if (chartData.length < 2) return null;
+
+  return (
+    <div className="mt-6 animate-reveal animate-reveal-delay-1">
+      <h2 className="text-lg font-semibold mb-3">Evolução</h2>
+      <div className="bg-card rounded-xl p-4 shadow-sm">
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+            <ReferenceLine y={70} stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeOpacity={0.4} />
+            <Tooltip
+              contentStyle={{
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+              formatter={(value: number) => [`${value}`, "Score"]}
+            />
+            <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function YearlyReminder({ lastScoreDate }: { lastScoreDate: string }) {
+  const daysSince = useMemo(() => {
+    const last = new Date(lastScoreDate + "T00:00:00");
+    const now = new Date();
+    return Math.floor((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+  }, [lastScoreDate]);
+
+  if (daysSince < 330) return null; // show 1 month before 1 year
+
+  const isOverdue = daysSince >= 365;
+
+  return (
+    <div className={`mt-4 rounded-lg p-4 flex items-start gap-3 animate-reveal animate-reveal-delay-2 ${
+      isOverdue ? "bg-[hsl(var(--follow-up))/0.1] border border-[hsl(var(--follow-up))/0.3]" : "bg-[hsl(var(--attention))/0.1] border border-[hsl(var(--attention))/0.3]"
+    }`}>
+      <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${isOverdue ? "text-[hsl(var(--follow-up))]" : "text-[hsl(var(--attention))]"}`} />
+      <div>
+        <p className="text-sm font-medium text-foreground">
+          {isOverdue ? "Seu Índice está desatualizado" : "Hora de atualizar seu Índice"}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {isOverdue
+            ? `Faz mais de 1 ano desde sua última avaliação. Envie novos exames e refaça o check-in para manter seu acompanhamento em dia.`
+            : `Sua última avaliação foi há ${daysSince} dias. Recomendamos atualizar ao menos 1× por ano para acompanhar sua evolução.`}
+        </p>
+      </div>
     </div>
   );
 }
@@ -158,6 +216,12 @@ export default function ScorePage() {
         <ScoreRing score={score_geral} size={180} />
         <p className="text-sm text-muted-foreground mt-3 text-center max-w-[280px]">{frase_contexto}</p>
       </div>
+
+      {/* Yearly reminder */}
+      {latestScore.data && <YearlyReminder lastScoreDate={latestScore.data} />}
+
+      {/* Longitudinal chart */}
+      <ScoreHistoryChart scores={scores.filter((s) => s.data)} />
 
       {/* Pilares */}
       <div className="mt-8 space-y-5 animate-reveal animate-reveal-delay-1">
