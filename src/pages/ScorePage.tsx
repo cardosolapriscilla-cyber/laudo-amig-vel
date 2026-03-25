@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
 import { ArrowLeft, FlaskConical, User, ChevronRight } from "lucide-react";
 import type { PilarScore } from "@/types/health";
+import CheckinSheet from "@/components/CheckinSheet";
 
 const statusColor: Record<string, string> = {
   otimo: "bg-primary",
