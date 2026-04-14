@@ -14,7 +14,247 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      consultas_agendadas: {
+        Row: {
+          created_at: string | null
+          data_consulta: string
+          especialidade: string
+          id: string
+          lembrete_enviado: boolean | null
+          local_consulta: string | null
+          resumo_enviado: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_consulta: string
+          especialidade: string
+          id?: string
+          lembrete_enviado?: boolean | null
+          local_consulta?: string | null
+          resumo_enviado?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_consulta?: string
+          especialidade?: string
+          id?: string
+          lembrete_enviado?: boolean | null
+          local_consulta?: string | null
+          resumo_enviado?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultas_agendadas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dicas_enviadas: {
+        Row: {
+          enviado_em: string | null
+          id: string
+          tema: string
+          user_id: string | null
+        }
+        Insert: {
+          enviado_em?: string | null
+          id?: string
+          tema: string
+          user_id?: string | null
+        }
+        Update: {
+          enviado_em?: string | null
+          id?: string
+          tema?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dicas_enviadas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lembretes_preventivos: {
+        Row: {
+          created_at: string | null
+          data_proximo: string
+          data_ultimo: string | null
+          enviado: boolean | null
+          fonte_guideline: string | null
+          id: string
+          motivo: string | null
+          tipo_exame: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_proximo: string
+          data_ultimo?: string | null
+          enviado?: boolean | null
+          fonte_guideline?: string | null
+          id?: string
+          motivo?: string | null
+          tipo_exame: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_proximo?: string
+          data_ultimo?: string | null
+          enviado?: boolean | null
+          fonte_guideline?: string | null
+          id?: string
+          motivo?: string | null
+          tipo_exame?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lembretes_preventivos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_exames: {
+        Row: {
+          created_at: string | null
+          data_coleta: string | null
+          id: string
+          laboratorio: string | null
+          nome: string
+          resultado_json: Json | null
+          resumo: string | null
+          sistema: string | null
+          texto_original: string
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_coleta?: string | null
+          id?: string
+          laboratorio?: string | null
+          nome: string
+          resultado_json?: Json | null
+          resumo?: string | null
+          sistema?: string | null
+          texto_original: string
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_coleta?: string | null
+          id?: string
+          laboratorio?: string | null
+          nome?: string
+          resultado_json?: Json | null
+          resumo?: string | null
+          sistema?: string | null
+          texto_original?: string
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_exames_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_mensagens: {
+        Row: {
+          conteudo: string
+          created_at: string | null
+          direcao: string
+          id: string
+          tipo: string | null
+          user_id: string | null
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string | null
+          direcao: string
+          id?: string
+          tipo?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string | null
+          direcao?: string
+          id?: string
+          tipo?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_mensagens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_users: {
+        Row: {
+          ativo: boolean | null
+          condicoes: string[] | null
+          created_at: string | null
+          data_nascimento: string | null
+          historico_familiar: string | null
+          id: string
+          nome: string | null
+          onboarding_completo: boolean | null
+          phone: string
+          sexo: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          condicoes?: string[] | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          historico_familiar?: string | null
+          id?: string
+          nome?: string | null
+          onboarding_completo?: boolean | null
+          phone: string
+          sexo?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          condicoes?: string[] | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          historico_familiar?: string | null
+          id?: string
+          nome?: string | null
+          onboarding_completo?: boolean | null
+          phone?: string
+          sexo?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
