@@ -2,6 +2,7 @@ import { useExamStore } from "@/stores/examStore";
 import { ArrowLeft, Leaf } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import WhatsAppConnect from "@/components/WhatsAppConnect";
 
 const CONDICOES = [
   "Diabetes", "Hipertensão", "Hipotireoidismo", "Dislipidemia",
@@ -126,6 +127,11 @@ export default function ProfilePage() {
         >
           {saved ? "✓ Salvo" : "Salvar perfil"}
         </button>
+
+        {/* WhatsApp */}
+        <div className="pt-2">
+          <WhatsAppConnect />
+        </div>
       </div>
     </div>
   );
