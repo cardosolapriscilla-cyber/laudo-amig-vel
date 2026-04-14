@@ -127,6 +127,11 @@ export default function ProfilePage() {
         >
           {saved ? "✓ Salvo" : "Salvar perfil"}
         </button>
+
+        {/* WhatsApp */}
+        <div className="pt-2">
+          <WhatsAppConnect />
+        </div>
       </div>
     </div>
   );
