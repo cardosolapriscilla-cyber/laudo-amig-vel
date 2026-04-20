@@ -19,6 +19,7 @@ import BriefingPage from "./pages/BriefingPage";
 import MapaSaudePage from "./pages/MapaSaudePage";
 import RecomendacoesPage from "./pages/RecomendacoesPage";
 import ConsultaPage from "./pages/ConsultaPage";
+import ConsultasAgendaPage from "./pages/ConsultasAgendaPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ function AppContent() {
         <Route path="/mapa" element={<MapaSaudePage />} />
         <Route path="/prevencao" element={<RecomendacoesPage />} />
         <Route path="/consulta" element={<ConsultaPage />} />
+        <Route path="/consultas" element={<ConsultasAgendaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>

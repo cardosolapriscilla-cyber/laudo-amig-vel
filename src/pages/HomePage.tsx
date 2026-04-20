@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useExamStore } from "@/stores/examStore";
 import { ExamCard } from "@/components/ExamCard";
-import { Plus, Leaf, FlaskConical, User, Map, ShieldCheck } from "lucide-react";
+import { Plus, Leaf, FlaskConical, User, Map, ShieldCheck, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/providers/AuthProvider";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -41,11 +43,27 @@ function MiniScoreRing({ score }: { score: number }) {
 export default function HomePage() {
   const { exames, perfil, scores } = useExamStore();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isDefault = !perfil.nome || !perfil.dataNascimento;
+  const [proximaConsulta, setProximaConsulta] = useState<{ data_consulta: string; especialidade: string } | null>(null);
 
   useEffect(() => {
     if (isDefault) navigate("/onboarding", { replace: true });
   }, [isDefault, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("consultas_agendadas")
+      .select("data_consulta, especialidade")
+      .eq("auth_user_id", user.id)
+      .gte("data_consulta", new Date().toISOString())
+      .order("data_consulta", { ascending: true })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setProximaConsulta(data[0]);
+      });
+  }, [user]);
 
   if (isDefault) return null;
 
@@ -134,6 +152,18 @@ export default function HomePage() {
           <ShieldCheck className="w-5 h-5 text-primary mb-2" />
           <p className="text-sm font-medium">Prevenção</p>
           <p className="text-xs text-muted-foreground mt-0.5">Exames recomendados</p>
+        </button>
+        <button
+          onClick={() => navigate("/consultas")}
+          className="bg-card rounded-xl p-4 shadow-sm text-left hover:shadow-md active:scale-[0.98] transition-all col-span-2"
+        >
+          <CalendarDays className="w-5 h-5 text-primary mb-2" />
+          <p className="text-sm font-medium">Consultas</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {proximaConsulta
+              ? `${proximaConsulta.especialidade} — ${new Date(proximaConsulta.data_consulta).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}`
+              : "Agendar consulta"}
+          </p>
         </button>
       </div>
 
