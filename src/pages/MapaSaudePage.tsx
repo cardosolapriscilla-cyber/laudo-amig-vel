@@ -72,9 +72,9 @@ function SistemaCard({
       {/* Ícone colorido */}
       <div
         className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: cfg.corBg }}
+        style={{ background: cfg.corBg, color: cfg.cor }}
       >
-        <Icon className="w-5 h-5" style={{ color: cfg.cor }} />
+        <Icon className="w-5 h-5" />
       </div>
 
       {/* Conteúdo */}
@@ -160,9 +160,9 @@ function SistemaDetail({
         <div className="flex items-center gap-3 mb-5">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ background: cfg.corBg }}
+            style={{ background: cfg.corBg, color: cfg.cor }}
           >
-            <Icon className="w-6 h-6" style={{ color: cfg.cor }} />
+            <Icon className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-lg font-semibold">{sistema.sistema}</h2>

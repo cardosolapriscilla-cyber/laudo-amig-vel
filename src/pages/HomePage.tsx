@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useExamStore } from "@/stores/examStore";
 import { ExamCard } from "@/components/ExamCard";
-import { Plus, Leaf, FlaskConical, User } from "lucide-react";
+import { Plus, Leaf, FlaskConical, User, Map, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function getGreeting() {
@@ -116,6 +116,26 @@ export default function HomePage() {
           <p className="text-xs text-primary mt-3 font-medium">Enviar exame →</p>
         </button>
       )}
+
+      {/* Quick access cards */}
+      <div className="mt-4 grid grid-cols-2 gap-3 animate-reveal animate-reveal-delay-2">
+        <button
+          onClick={() => navigate("/mapa")}
+          className="bg-card rounded-xl p-4 shadow-sm text-left hover:shadow-md active:scale-[0.98] transition-all"
+        >
+          <Map className="w-5 h-5 text-primary mb-2" />
+          <p className="text-sm font-medium">Mapa de saúde</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Por sistema fisiológico</p>
+        </button>
+        <button
+          onClick={() => navigate("/prevencao")}
+          className="bg-card rounded-xl p-4 shadow-sm text-left hover:shadow-md active:scale-[0.98] transition-all"
+        >
+          <ShieldCheck className="w-5 h-5 text-primary mb-2" />
+          <p className="text-sm font-medium">Prevenção</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Exames recomendados</p>
+        </button>
+      </div>
 
       {exames.length === 0 ? (
         <div className="mt-16 text-center animate-reveal animate-reveal-delay-1">
