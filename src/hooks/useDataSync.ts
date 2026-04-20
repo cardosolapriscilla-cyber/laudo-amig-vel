@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/providers/AuthProvider";
 import { useExamStore } from "@/stores/examStore";
-import type { Exame, ResultadoLaudo, ResultadoEvolutivo } from "@/types/health";
+import type { Exame, ResultadoExplicador, ResultadoEvolutivo, TipoExame, SistemaExame } from "@/types/health";
 
 /**
  * Sincroniza dados do localStorage <-> Supabase quando o usuário loga.
@@ -58,14 +58,14 @@ export function useDataSync() {
 
         const remotosMapeados: Exame[] = (examesRemotos || []).map((e) => ({
           id: e.id,
-          tipo: e.tipo as any,
+          tipo: e.tipo as TipoExame,
           nome: e.nome,
           data: e.data || new Date(e.created_at!).toISOString().split("T")[0],
           laboratorio: e.laboratorio || "Não informado",
           textoOriginal: e.texto_original,
           resumo: e.resumo || undefined,
-          sistema: e.sistema || undefined,
-          resultado: (e.resultado_json as unknown as ResultadoLaudo) || undefined,
+          sistema: (e.sistema as SistemaExame) || undefined,
+          resultado: (e.resultado_json as unknown as ResultadoExplicador) || undefined,
           resultadoEvolutivo: (e.resultado_evolutivo_json as unknown as ResultadoEvolutivo) || undefined,
         }));
 
