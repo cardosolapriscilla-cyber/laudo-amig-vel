@@ -131,36 +131,51 @@ export type Database = {
       }
       lembretes_preventivos: {
         Row: {
+          auth_user_id: string | null
           created_at: string | null
-          data_proximo: string
+          data_proximo: string | null
+          data_recomendada: string | null
           data_ultimo: string | null
           enviado: boolean | null
+          exame: string | null
           fonte_guideline: string | null
           id: string
           motivo: string | null
-          tipo_exame: string
+          prioridade: string | null
+          sistema: string | null
+          tipo_exame: string | null
           user_id: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string | null
-          data_proximo: string
+          data_proximo?: string | null
+          data_recomendada?: string | null
           data_ultimo?: string | null
           enviado?: boolean | null
+          exame?: string | null
           fonte_guideline?: string | null
           id?: string
           motivo?: string | null
-          tipo_exame: string
+          prioridade?: string | null
+          sistema?: string | null
+          tipo_exame?: string | null
           user_id?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string | null
-          data_proximo?: string
+          data_proximo?: string | null
+          data_recomendada?: string | null
           data_ultimo?: string | null
           enviado?: boolean | null
+          exame?: string | null
           fonte_guideline?: string | null
           id?: string
           motivo?: string | null
-          tipo_exame?: string
+          prioridade?: string | null
+          sistema?: string | null
+          tipo_exame?: string | null
           user_id?: string | null
         }
         Relationships: [
