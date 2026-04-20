@@ -221,8 +221,9 @@ export default function RecomendacoesPage() {
           data_recomendada: rec.proximo_recomendado,
           motivo: rec.motivo,
           fonte_guideline: rec.fonte_guideline,
-          criado_em: new Date().toISOString(),
-        }, { onConflict: "auth_user_id,exame" });
+          tipo_exame: rec.exame,
+          data_proximo: rec.proximo_recomendado || new Date().toISOString().split("T")[0],
+        } as any, { onConflict: "auth_user_id,exame" });
       }
       toast.success(`Lembrete criado para ${rec.exame}`);
     } catch {

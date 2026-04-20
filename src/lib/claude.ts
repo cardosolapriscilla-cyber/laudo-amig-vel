@@ -200,6 +200,174 @@ export async function compararExames(
   return JSON.parse(resposta);
 }
 
+// ─── Mapa de Saúde ────────────────────────────────────────────────────────────
+
+export type {
+  MapaSaude,
+  SistemaStatus,
+  ResultadoRecomendacoes,
+  RecomendacaoPreventiva,
+} from "@/types/health";
+
+import type { Exame, PerfilSaude } from "@/types/health";
+import type {
+  MapaSaude as MapaSaudeType,
+  ResultadoRecomendacoes as ResultadoRecomendacoesType,
+} from "@/types/health";
+
+export const SYSTEM_MAPA = `
+Você é um assistente de saúde preventiva do app Laudo Amigável.
+Recebeu uma agregação de exames do usuário, agrupados por sistema fisiológico.
+Gere um mapa de saúde sistêmico, equilibrando otimismo e honestidade.
+
+REGRAS:
+- Nunca diagnostique. Use linguagem de tendência e observação.
+- Para sistemas sem exames, retorne status "sem_dados" e sugira o exame inicial pertinente.
+- Status: otimo (todos parâmetros normais e estáveis/melhora), bom (maioria normal),
+  atencao (algum parâmetro fora ou tendência de piora leve), alerta (achados relevantes
+  ou variação >15%), sem_dados (nenhum exame deste sistema).
+- A narrativa deve ser curta (máx 35 palavras), tom acolhedor, foco no panorama.
+- Ação sugerida: prática, específica, máx 25 palavras.
+
+SISTEMAS A AVALIAR (sempre todos os 9):
+Cardiovascular, Metabólico, Hepatobiliar, Renal, Endócrino,
+Hematológico, Respiratório, Musculoesquelético, Neurológico
+
+FORMATO DE SAÍDA — JSON puro, sem markdown:
+{
+  "gerado_em": "YYYY-MM-DD",
+  "resumo_geral": "string (máx 60 palavras, panorama geral encorajador)",
+  "sistemas": [
+    {
+      "sistema": "string (um dos 9 acima)",
+      "status": "otimo | bom | atencao | alerta | sem_dados",
+      "ultimo_exame": "YYYY-MM-DD ou null",
+      "achados_count": "number (total de achados deste sistema)",
+      "achados_atencao": "number (achados em atenção/acompanhamento)",
+      "parametros_recentes": [
+        { "nome": "string", "tendencia": "melhora|estavel|atencao|piora", "ultimo_valor": "string ou null" }
+      ],
+      "narrativa": "string (máx 35 palavras)",
+      "acao_sugerida": "string (máx 25 palavras)"
+    }
+  ]
+}
+`;
+
+export const SYSTEM_PREVENTIVO = `
+Você é um assistente de saúde preventiva do app Laudo Amigável.
+Recebeu o perfil do usuário e seu histórico de exames.
+Gere uma lista de recomendações preventivas personalizadas, baseadas em guidelines
+brasileiras e internacionais (SBC, SBD, SBEM, USPSTF, MS).
+
+REGRAS:
+- Considere idade, sexo biológico, condições e histórico familiar.
+- Para cada exame: avalie se o usuário está em dia (compare ultimo_realizado com frequencia_recomendada).
+- Prioridade alta: exames críticos atrasados ou indicados pelo perfil de risco.
+- Prioridade média: exames de rotina dentro da janela de atualização.
+- Prioridade baixa: eletivos ou complementares.
+- Sempre cite a fonte (ex: "SBC 2020", "USPSTF 2022", "MS — Caderneta de Saúde").
+- Mensagem motivacional: tom acolhedor, sem alarmismo, máx 50 palavras.
+- Próxima revisão: data sugerida para reavaliar (geralmente 6 meses).
+
+FORMATO DE SAÍDA — JSON puro, sem markdown:
+{
+  "gerado_em": "YYYY-MM-DD",
+  "perfil_considerado": "string (resumo curto do perfil usado: idade, sexo, condições)",
+  "mensagem_motivacional": "string",
+  "proxima_revisao": "YYYY-MM-DD",
+  "recomendacoes": [
+    {
+      "id": "string (slug único do exame)",
+      "exame": "string",
+      "sistema": "string",
+      "prioridade": "alta | media | baixa",
+      "motivo": "string (justificativa personalizada, máx 40 palavras)",
+      "frequencia_recomendada": "string (ex: 'anual', 'a cada 2 anos')",
+      "ultimo_realizado": "YYYY-MM-DD ou null",
+      "proximo_recomendado": "YYYY-MM-DD ou null",
+      "esta_em_dia": "boolean",
+      "acao": "agendar | repetir_em_breve | em_dia",
+      "fonte_guideline": "string"
+    }
+  ]
+}
+`;
+
+function formatPerfil(perfil: PerfilSaude): string {
+  const idade = perfil.dataNascimento
+    ? Math.floor((Date.now() - new Date(perfil.dataNascimento).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    : "?";
+  return `${perfil.nome || "Usuário"}, ${idade} anos, ${perfil.sexoBiologico || "não informado"}.
+Condições: ${perfil.condicoes?.join(", ") || "nenhuma"}.
+Histórico familiar: ${perfil.historicoFamiliar || "não informado"}.`;
+}
+
+export function agregarPorSistema(exames: Exame[]) {
+  const sistemas: Record<string, {
+    sistema: string;
+    exames: { nome: string; data: string; laboratorio?: string; resumo?: string; achados_count: number; achados_atencao: number }[];
+  }> = {};
+
+  for (const e of exames) {
+    const s = e.sistema || "Outro";
+    if (!sistemas[s]) sistemas[s] = { sistema: s, exames: [] };
+    const achados = e.resultado?.achados ?? [];
+    sistemas[s].exames.push({
+      nome: e.nome,
+      data: e.data,
+      laboratorio: e.laboratorio,
+      resumo: e.resumo,
+      achados_count: achados.length,
+      achados_atencao: achados.filter((a: any) => a.status === "atencao" || a.status === "acompanhamento").length,
+    });
+  }
+
+  return Object.values(sistemas);
+}
+
+export async function gerarMapaSaude(
+  exames: Exame[],
+  perfil: PerfilSaude
+): Promise<MapaSaudeType> {
+  const agregado = agregarPorSistema(exames);
+  const userMessage = `
+PERFIL: ${formatPerfil(perfil)}
+
+DATA ATUAL: ${new Date().toISOString().split("T")[0]}
+
+EXAMES AGREGADOS POR SISTEMA:
+${JSON.stringify(agregado, null, 2)}
+
+Gere o mapa de saúde retornando JSON conforme o formato especificado.
+  `;
+  const resposta = await callClaude(SYSTEM_MAPA, userMessage);
+  return JSON.parse(resposta);
+}
+
+export async function gerarRecomendacoesPreventivas(
+  exames: Exame[],
+  perfil: PerfilSaude
+): Promise<ResultadoRecomendacoesType> {
+  const examesResumo = exames.map((e) => ({
+    nome: e.nome,
+    sistema: e.sistema,
+    data: e.data,
+  }));
+  const userMessage = `
+PERFIL: ${formatPerfil(perfil)}
+
+DATA ATUAL: ${new Date().toISOString().split("T")[0]}
+
+HISTÓRICO DE EXAMES (${exames.length} total):
+${JSON.stringify(examesResumo, null, 2)}
+
+Gere as recomendações preventivas personalizadas retornando JSON conforme o formato.
+  `;
+  const resposta = await callClaude(SYSTEM_PREVENTIVO, userMessage);
+  return JSON.parse(resposta);
+}
+
 export async function calcularScore(dadosScore: {
   examesClinicosResumidos: string;
   checkin: {

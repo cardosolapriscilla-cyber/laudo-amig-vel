@@ -16,6 +16,8 @@ import ScorePage from "./pages/ScorePage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AuthPage from "./pages/AuthPage";
 import BriefingPage from "./pages/BriefingPage";
+import MapaSaudePage from "./pages/MapaSaudePage";
+import RecomendacoesPage from "./pages/RecomendacoesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ function AppContent() {
         <Route path="/evolucao/:id" element={<EvolutionPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/score" element={<ScorePage />} />
+        <Route path="/mapa" element={<MapaSaudePage />} />
+        <Route path="/prevencao" element={<RecomendacoesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>
