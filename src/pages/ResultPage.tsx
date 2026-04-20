@@ -5,6 +5,7 @@ import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
 import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
 import CheckinSheet from "@/components/CheckinSheet";
+import ShareWithDoctorSheet from "@/components/ShareWithDoctorSheet";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const statusConfig = {
@@ -371,6 +372,7 @@ export default function ResultPage() {
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [copied, setCopied] = useState(false);
   const [showCheckin, setShowCheckin] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [activeTab, setActiveTab] = useState<"explicacao" | "evolucao">("explicacao");
 
   const previousExams = exames.filter(
@@ -458,9 +460,19 @@ export default function ResultPage() {
 
   return (
     <div className="px-5 pt-14 pb-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground mb-6 active:scale-95 transition-transform">
-        <ArrowLeft className="w-4 h-4" /> Voltar
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground active:scale-95 transition-transform">
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </button>
+        <button
+          onClick={() => setShowShare(true)}
+          className="flex items-center gap-1.5 text-sm text-primary active:scale-95 transition-transform"
+          aria-label="Compartilhar com médico"
+        >
+          <Share2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Compartilhar com médico</span>
+        </button>
+      </div>
 
       {/* Header */}
       <div className="animate-reveal">
@@ -657,6 +669,9 @@ export default function ResultPage() {
           onSkip={() => setShowCheckin(false)}
         />
       )}
+
+      {/* Share with doctor */}
+      <ShareWithDoctorSheet open={showShare} onOpenChange={setShowShare} />
     </div>
   );
 }
