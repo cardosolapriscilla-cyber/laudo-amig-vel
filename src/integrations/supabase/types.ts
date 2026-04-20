@@ -16,32 +16,38 @@ export type Database = {
     Tables: {
       consultas_agendadas: {
         Row: {
+          auth_user_id: string | null
           created_at: string | null
           data_consulta: string
           especialidade: string
           id: string
           lembrete_enviado: boolean | null
           local_consulta: string | null
+          push_enviado: string | null
           resumo_enviado: boolean | null
           user_id: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string | null
           data_consulta: string
           especialidade: string
           id?: string
           lembrete_enviado?: boolean | null
           local_consulta?: string | null
+          push_enviado?: string | null
           resumo_enviado?: boolean | null
           user_id?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string | null
           data_consulta?: string
           especialidade?: string
           id?: string
           lembrete_enviado?: boolean | null
           local_consulta?: string | null
+          push_enviado?: string | null
           resumo_enviado?: boolean | null
           user_id?: string | null
         }
@@ -142,6 +148,7 @@ export type Database = {
           id: string
           motivo: string | null
           prioridade: string | null
+          push_enviado: string | null
           sistema: string | null
           tipo_exame: string | null
           user_id: string | null
@@ -158,6 +165,7 @@ export type Database = {
           id?: string
           motivo?: string | null
           prioridade?: string | null
+          push_enviado?: string | null
           sistema?: string | null
           tipo_exame?: string | null
           user_id?: string | null
@@ -174,6 +182,7 @@ export type Database = {
           id?: string
           motivo?: string | null
           prioridade?: string | null
+          push_enviado?: string | null
           sistema?: string | null
           tipo_exame?: string | null
           user_id?: string | null
@@ -218,6 +227,39 @@ export type Database = {
           sexo_biologico?: string | null
           updated_at?: string | null
           whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          auth_user_id: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          ultimo_score_push: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_key: string
+          auth_user_id: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          ultimo_score_push?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_key?: string
+          auth_user_id?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          ultimo_score_push?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
