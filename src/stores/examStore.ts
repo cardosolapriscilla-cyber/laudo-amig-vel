@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Exame, PerfilSaude, Checkin, ResultadoScore } from "@/types/health";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExamStore {
   exames: Exame[];
@@ -14,26 +15,31 @@ interface ExamStore {
   addScore: (score: ResultadoScore) => void;
 }
 
-// Mock score for demo (uncomment to enable):
-// const DEMO_SCORE: ResultadoScore = {
-//   data: "2025-03-15",
-//   score_geral: 72,
-//   tendencia: "primeiro_registro",
-//   frase_contexto: "Seus exames clínicos estão bem — sono merece atenção.",
-//   pilares: [
-//     { nome: "Exames clínicos", score: 82, fonte: "objetivo", status: "bom", detalhe: "Hemograma e lipídeos dentro da faixa" },
-//     { nome: "Sono", score: 55, fonte: "autodeclarado", status: "atencao", detalhe: "5-6h por noite, qualidade regular" },
-//     { nome: "Estresse", score: 68, fonte: "autodeclarado", status: "bom", detalhe: "Nível moderado de estresse" },
-//     { nome: "Atividade física", score: 75, fonte: "autodeclarado", status: "bom", detalhe: "150-300 min/semana" },
-//   ],
-//   confiabilidade: { pilares_preenchidos: 4, total_pilares: 6, nivel: "media", mensagem: "Faltam alimentação e adesão preventiva" },
-//   comparacao_populacional: null,
-//   proximo_passo: "Tente dormir 7h por noite nas próximas 2 semanas.",
-// };
+async function getUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user.id ?? null;
+}
+
+async function syncExameToSupabase(userId: string, exame: Exame) {
+  const { error } = await supabase.from("exames").upsert({
+    id: exame.id,
+    auth_user_id: userId,
+    nome: exame.nome,
+    tipo: exame.tipo,
+    data: exame.data || null,
+    laboratorio: exame.laboratorio || null,
+    sistema: exame.sistema || null,
+    texto_original: exame.textoOriginal,
+    resumo: exame.resumo || null,
+    resultado_json: (exame.resultado as any) || null,
+    resultado_evolutivo_json: (exame.resultadoEvolutivo as any) || null,
+  });
+  if (error) console.error("Erro ao sincronizar exame:", error);
+}
 
 export const useExamStore = create<ExamStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       exames: [],
       perfil: {
         nome: "",
@@ -44,14 +50,40 @@ export const useExamStore = create<ExamStore>()(
       },
       checkins: [],
       scores: [],
-      addExame: (exame) =>
-        set((state) => ({ exames: [exame, ...state.exames] })),
-      updateExame: (id, updates) =>
+      addExame: (exame) => {
+        set((state) => ({ exames: [exame, ...state.exames] }));
+        getUserId().then((uid) => {
+          if (uid) syncExameToSupabase(uid, exame);
+        });
+      },
+      updateExame: (id, updates) => {
         set((state) => ({
           exames: state.exames.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-        })),
-      setPerfil: (updates) =>
-        set((state) => ({ perfil: { ...state.perfil, ...updates } })),
+        }));
+        const updated = get().exames.find((e) => e.id === id);
+        if (updated) {
+          getUserId().then((uid) => {
+            if (uid) syncExameToSupabase(uid, updated);
+          });
+        }
+      },
+      setPerfil: (updates) => {
+        set((state) => ({ perfil: { ...state.perfil, ...updates } }));
+        const next = get().perfil;
+        getUserId().then((uid) => {
+          if (!uid) return;
+          supabase.from("perfis").upsert({
+            auth_user_id: uid,
+            nome: next.nome || null,
+            data_nascimento: next.dataNascimento || null,
+            sexo_biologico: next.sexoBiologico || null,
+            condicoes: next.condicoes,
+            historico_familiar: next.historicoFamiliar || null,
+          }, { onConflict: "auth_user_id" }).then(({ error }) => {
+            if (error) console.error("Erro ao sincronizar perfil:", error);
+          });
+        });
+      },
       addCheckin: (checkin) =>
         set((state) => ({ checkins: [checkin, ...state.checkins] })),
       addScore: (score) =>

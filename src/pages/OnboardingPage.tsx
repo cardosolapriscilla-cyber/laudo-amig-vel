@@ -1,20 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
+import { useAuth } from "@/providers/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { Leaf } from "lucide-react";
+import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { setPerfil } = useExamStore();
+  const { user } = useAuth();
   const [nome, setNome] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [sexo, setSexo] = useState<"feminino" | "masculino">("feminino");
+  const [saving, setSaving] = useState(false);
 
   const canSubmit = nome.trim() && dataNascimento;
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!canSubmit) return;
+    setSaving(true);
     setPerfil({ nome: nome.trim(), dataNascimento, sexoBiologico: sexo });
+
+    if (user) {
+      const { error } = await supabase.from("perfis").upsert({
+        auth_user_id: user.id,
+        nome: nome.trim(),
+        data_nascimento: dataNascimento,
+        sexo_biologico: sexo,
+        condicoes: [],
+      }, { onConflict: "auth_user_id" });
+      if (error) toast.error("Não foi possível salvar no servidor, mas continuamos localmente.");
+    }
+    setSaving(false);
     navigate("/");
   };
 
