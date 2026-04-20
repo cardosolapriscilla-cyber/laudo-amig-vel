@@ -9,52 +9,197 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ─── PROMPT DE DETECÇÃO DE TIPO ───────────────────────────────────────────────
+
+const SYSTEM_DETECT = `
+Você é um classificador de exames médicos brasileiros.
+Analise o texto/imagem e retorne APENAS um JSON sem markdown:
+
+{
+  "tipo": "sangue" | "imagem" | "outros",
+  "nome": "string (nome padronizado do exame, ex: 'Hemograma Completo', 'Ultrassonografia Abdominal')",
+  "sistema": "Cardiovascular" | "Metabólico" | "Hepatobiliar" | "Renal" | "Endócrino" | "Hematológico" | "Respiratório" | "Musculoesquelético" | "Neurológico" | "Outro",
+  "laboratorio": "string ou null",
+  "data_coleta": "YYYY-MM-DD ou null"
+}
+
+EXEMPLOS DE CLASSIFICAÇÃO:
+- Hemograma, VHS, leucócitos → tipo: sangue, sistema: Hematológico
+- Colesterol, triglicerídeos, glicemia → tipo: sangue, sistema: Metabólico
+- TSH, T4, insulina → tipo: sangue, sistema: Endócrino
+- Creatinina, ureia, EAS → tipo: sangue, sistema: Renal
+- TGO, TGP, bilirrubina, GGT → tipo: sangue, sistema: Hepatobiliar
+- Ultrassom, tomografia, ressonância, raio-x → tipo: imagem
+- PSA, AFP, CA-125 → tipo: sangue, sistema: Outro
+- ECG, ecocardiograma → tipo: imagem, sistema: Cardiovascular
+`;
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function buildImageContent(base64: string, mediaType: string) {
+  return {
+    type: "image",
+    source: {
+      type: "base64",
+      media_type: mediaType,
+      data: base64,
+    },
+  };
+}
+
+async function callClaude(
+  system: string,
+  content: unknown[],
+  maxTokens = 2500
+): Promise<string> {
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY não configurada");
+
+  const response = await fetch(CLAUDE_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Claude API ${response.status}: ${err}`);
+  }
+
+  const data = await response.json();
+  let text: string = data.content[0].text;
+  // Strip markdown fences
+  text = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
+  return text;
+}
+
+// ─── HANDLER PRINCIPAL ────────────────────────────────────────────────────────
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Chave Anthropic não configurada" }), {
-        status: 500,
+    const body = await req.json();
+    const { mode, systemPrompt, userMessage, imageBase64, imageMediaType, pdfBase64 } = body;
+
+    // ── MODO: OCR (imagem ou PDF) ──────────────────────────────────────────────
+    if (mode === "ocr") {
+      if (!imageBase64 && !pdfBase64) {
+        return new Response(JSON.stringify({ error: "imageBase64 ou pdfBase64 obrigatório" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      let content: unknown[];
+
+      if (pdfBase64) {
+        content = [
+          {
+            type: "document",
+            source: {
+              type: "base64",
+              media_type: "application/pdf",
+              data: pdfBase64,
+            },
+          },
+          {
+            type: "text",
+            text: "Extraia TODO o texto deste exame médico. Preserve valores numéricos, unidades, datas e o cabeçalho do laboratório. Retorne apenas o texto extraído, sem comentários.",
+          },
+        ];
+      } else {
+        const mt = imageMediaType || "image/jpeg";
+        content = [
+          buildImageContent(imageBase64, mt),
+          {
+            type: "text",
+            text: "Extraia TODO o texto deste exame médico. Preserve valores numéricos, unidades, datas e o cabeçalho do laboratório. Retorne apenas o texto extraído, sem comentários.",
+          },
+        ];
+      }
+
+      const textoExtraido = await callClaude(
+        "Você é um sistema de OCR médico especializado em laudos e exames brasileiros. Sua única tarefa é extrair texto fiel ao documento. Nunca interprete, nunca adicione, nunca omita.",
+        content,
+        1500
+      );
+
+      return new Response(JSON.stringify({ text: textoExtraido }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { systemPrompt, userMessage } = await req.json();
+    // ── MODO: DETECT (classificar tipo de exame) ───────────────────────────────
+    if (mode === "detect") {
+      if (!userMessage && !imageBase64 && !pdfBase64) {
+        return new Response(JSON.stringify({ error: "userMessage ou imagem obrigatório" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    const MAX_CHARS = 6000;
-    const truncatedMessage = userMessage.length > MAX_CHARS
-      ? userMessage.slice(0, MAX_CHARS) + '\n\n[Texto truncado por tamanho. Analise apenas o conteúdo disponível acima.]'
+      let content: unknown[];
+
+      if (imageBase64 || pdfBase64) {
+        if (pdfBase64) {
+          content = [
+            { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdfBase64 } },
+            { type: "text", text: "Classifique este exame médico conforme o formato especificado." },
+          ];
+        } else {
+          content = [
+            buildImageContent(imageBase64, imageMediaType || "image/jpeg"),
+            { type: "text", text: "Classifique este exame médico conforme o formato especificado." },
+          ];
+        }
+      } else {
+        content = [{ type: "text", text: `Texto do exame:\n\n${userMessage}` }];
+      }
+
+      const result = await callClaude(SYSTEM_DETECT, content, 200);
+
+      return new Response(JSON.stringify({ text: result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── MODO: ANALYZE (comportamento original — análise de laudo) ──────────────
+    if (!systemPrompt || !userMessage) {
+      return new Response(JSON.stringify({ error: "systemPrompt e userMessage obrigatórios" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const MAX_CHARS = 8000;
+    const truncated = userMessage.length > MAX_CHARS
+      ? userMessage.slice(0, MAX_CHARS) + "\n\n[Texto truncado. Analise apenas o conteúdo disponível.]"
       : userMessage;
 
-    const response = await fetch(CLAUDE_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 2500,
-        system: systemPrompt,
-        messages: [{ role: "user", content: truncatedMessage }],
-      }),
-    });
+    let content: unknown[];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return new Response(JSON.stringify({ error: `Erro na API Claude: ${response.status}`, details: errorText }), {
-        status: response.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (imageBase64) {
+      content = [
+        buildImageContent(imageBase64, imageMediaType || "image/jpeg"),
+        { type: "text", text: truncated },
+      ];
+    } else {
+      content = [{ type: "text", text: truncated }];
     }
 
-    const data = await response.json();
-    const text = data.content[0].text;
+    const text = await callClaude(systemPrompt, content, 2500);
 
     return new Response(JSON.stringify({ text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

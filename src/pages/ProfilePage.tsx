@@ -1,9 +1,10 @@
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Leaf, LogOut } from "lucide-react";
+import { ArrowLeft, Leaf, LogOut, Bell, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import WhatsAppConnect from "@/components/WhatsAppConnect";
 import { useAuth } from "@/providers/AuthProvider";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const CONDICOES = [
   "Diabetes", "Hipertensão", "Hipotireoidismo", "Dislipidemia",
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { perfil, setPerfil } = useExamStore();
   const { user, signOut } = useAuth();
+  const { isSupported, isSubscribed, permissionState, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const [saved, setSaved] = useState(false);
 
   const handleSignOut = async () => {
@@ -134,6 +136,32 @@ export default function ProfilePage() {
         >
           {saved ? "✓ Salvo" : "Salvar perfil"}
         </button>
+
+        {/* Push notifications */}
+        {isSupported && (
+          <div className="bg-card rounded-xl p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-sage-light flex items-center justify-center shrink-0">
+              {isSubscribed ? <Bell className="w-4 h-4 text-primary" /> : <BellOff className="w-4 h-4 text-muted-foreground" />}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">Notificações</p>
+              <p className="text-xs text-muted-foreground">Lembretes de exames e consultas</p>
+            </div>
+            <button
+              onClick={isSubscribed ? unsubscribe : subscribe}
+              disabled={pushLoading || permissionState === "denied"}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 disabled:opacity-40
+                ${isSubscribed ? "bg-muted text-foreground" : "bg-primary text-primary-foreground"}`}
+            >
+              {pushLoading ? "..." : isSubscribed ? "Desativar" : "Ativar"}
+            </button>
+          </div>
+        )}
+        {permissionState === "denied" && (
+          <p className="text-xs text-muted-foreground -mt-3">
+            Notificações bloqueadas. Habilite nas configurações do navegador.
+          </p>
+        )}
 
         {/* WhatsApp */}
         <div className="pt-2">
