@@ -84,6 +84,51 @@ export type Database = {
           },
         ]
       }
+      exames: {
+        Row: {
+          auth_user_id: string
+          created_at: string | null
+          data: string | null
+          id: string
+          laboratorio: string | null
+          nome: string
+          resultado_evolutivo_json: Json | null
+          resultado_json: Json | null
+          resumo: string | null
+          sistema: string | null
+          texto_original: string
+          tipo: string
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string | null
+          data?: string | null
+          id?: string
+          laboratorio?: string | null
+          nome: string
+          resultado_evolutivo_json?: Json | null
+          resultado_json?: Json | null
+          resumo?: string | null
+          sistema?: string | null
+          texto_original: string
+          tipo: string
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string | null
+          data?: string | null
+          id?: string
+          laboratorio?: string | null
+          nome?: string
+          resultado_evolutivo_json?: Json | null
+          resultado_json?: Json | null
+          resumo?: string | null
+          sistema?: string | null
+          texto_original?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
       lembretes_preventivos: {
         Row: {
           created_at: string | null
@@ -128,8 +173,75 @@ export type Database = {
           },
         ]
       }
+      perfis: {
+        Row: {
+          auth_user_id: string
+          condicoes: string[] | null
+          data_nascimento: string | null
+          historico_familiar: string | null
+          nome: string | null
+          sexo_biologico: string | null
+          updated_at: string | null
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          auth_user_id: string
+          condicoes?: string[] | null
+          data_nascimento?: string | null
+          historico_familiar?: string | null
+          nome?: string | null
+          sexo_biologico?: string | null
+          updated_at?: string | null
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          auth_user_id?: string
+          condicoes?: string[] | null
+          data_nascimento?: string | null
+          historico_familiar?: string | null
+          nome?: string | null
+          sexo_biologico?: string | null
+          updated_at?: string | null
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
+      shared_briefings: {
+        Row: {
+          accessed_at: string | null
+          auth_user_id: string
+          briefing_json: Json | null
+          created_at: string | null
+          especialidade: string | null
+          expires_at: string
+          id: string
+          token: string
+        }
+        Insert: {
+          accessed_at?: string | null
+          auth_user_id: string
+          briefing_json?: Json | null
+          created_at?: string | null
+          especialidade?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+        }
+        Update: {
+          accessed_at?: string | null
+          auth_user_id?: string
+          briefing_json?: Json | null
+          created_at?: string | null
+          especialidade?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
       whatsapp_exames: {
         Row: {
+          auth_user_id: string | null
           created_at: string | null
           data_coleta: string | null
           id: string
@@ -143,6 +255,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string | null
           data_coleta?: string | null
           id?: string
@@ -156,6 +269,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string | null
           data_coleta?: string | null
           id?: string
@@ -216,6 +330,7 @@ export type Database = {
       whatsapp_users: {
         Row: {
           ativo: boolean | null
+          auth_user_id: string | null
           condicoes: string[] | null
           created_at: string | null
           data_nascimento: string | null
@@ -229,6 +344,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          auth_user_id?: string | null
           condicoes?: string[] | null
           created_at?: string | null
           data_nascimento?: string | null
@@ -242,6 +358,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          auth_user_id?: string | null
           condicoes?: string[] | null
           created_at?: string | null
           data_nascimento?: string | null
