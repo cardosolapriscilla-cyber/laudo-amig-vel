@@ -40,7 +40,7 @@ export default function AuthPage() {
         <div className="w-14 h-14 rounded-2xl bg-sage-light flex items-center justify-center mx-auto mb-4">
           <Leaf className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="text-2xl font-semibold">Entre no Laudo Amigável</h1>
+        <h1 className="text-2xl font-semibold">Entre na Nauta</h1>
         <p className="text-sm text-muted-foreground mt-2">
           Receba um link mágico no seu email para entrar com segurança.
         </p>

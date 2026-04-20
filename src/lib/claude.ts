@@ -20,7 +20,7 @@ async function callClaude(systemPrompt: string, userMessage: string): Promise<st
 }
 
 export const SYSTEM_EXPLICADOR = `
-Você é um assistente de saúde preventiva do app Laudo Amigável.
+Você é um assistente de saúde preventiva do app Nauta.
 Explica laudos médicos para pacientes leigos de forma clara, acolhedora e honesta.
 
 PERFIL DO USUÁRIO (quando disponível):
@@ -77,7 +77,7 @@ TRILHA DISCRETA — use quando o achado for um estado clínico nomeado:
 `;
 
 export const SYSTEM_EVOLUTIVO = `
-Você é um assistente de saúde preventiva do app Laudo Amigável.
+Você é um assistente de saúde preventiva do app Nauta.
 Recebeu dois ou mais exames do mesmo usuário em datas diferentes.
 
 PERFIL DO USUÁRIO (quando disponível):
@@ -132,7 +132,7 @@ FORMATO DE SAÍDA — JSON puro, sem markdown:
 `;
 
 export const SYSTEM_SCORE = `
-Você é um assistente de saúde preventiva do app Laudo Amigável.
+Você é um assistente de saúde preventiva do app Nauta.
 Recebeu dados estruturados de exames clínicos e check-ins de pilares comportamentais.
 Calcule o score de saúde e gere a narrativa de contexto.
 
