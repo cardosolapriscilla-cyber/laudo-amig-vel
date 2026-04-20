@@ -13,7 +13,13 @@ const CONDICOES = [
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { perfil, setPerfil } = useExamStore();
+  const { user, signOut } = useAuth();
   const [saved, setSaved] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
 
   const toggleCondicao = (c: string) => {
     const next = perfil.condicoes.includes(c)
@@ -133,6 +139,23 @@ export default function ProfilePage() {
         <div className="pt-2">
           <WhatsAppConnect />
         </div>
+
+        {/* Account / Logout */}
+        {user && (
+          <div className="pt-4 border-t">
+            <p className="text-xs text-muted-foreground mb-3">
+              Conectado como <span className="text-foreground font-medium">{user.email}</span>
+            </p>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg
+                bg-card border border-border text-sm font-medium text-muted-foreground
+                hover:bg-muted active:scale-[0.97] transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" /> Sair
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
