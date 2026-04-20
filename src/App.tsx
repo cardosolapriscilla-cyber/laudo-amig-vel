@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ScorePage from "./pages/ScorePage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AuthPage from "./pages/AuthPage";
+import BriefingPage from "./pages/BriefingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ function AppContent() {
     <AppShell>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/briefing/:token" element={<BriefingPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/upload" element={<UploadPage />} />
