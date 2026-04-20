@@ -42,7 +42,7 @@ export default function OnboardingPage() {
         <div className="w-14 h-14 rounded-2xl bg-sage-light flex items-center justify-center mx-auto mb-4">
           <Leaf className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="text-2xl font-semibold">Bem-vindo ao Laudo Amigável</h1>
+        <h1 className="text-2xl font-semibold">Bem-vindo à Nauta</h1>
         <p className="text-sm text-muted-foreground mt-2">
           Vamos personalizar sua experiência com algumas informações básicas.
         </p>

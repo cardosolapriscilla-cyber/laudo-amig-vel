@@ -37,6 +37,15 @@ async function syncExameToSupabase(userId: string, exame: Exame) {
   if (error) console.error("Erro ao sincronizar exame:", error);
 }
 
+// Migra dados do storage antigo para o novo
+if (typeof window !== "undefined") {
+  const old = localStorage.getItem("laudo-amigavel-storage");
+  if (old && !localStorage.getItem("nauta-storage")) {
+    localStorage.setItem("nauta-storage", old);
+    localStorage.removeItem("laudo-amigavel-storage");
+  }
+}
+
 export const useExamStore = create<ExamStore>()(
   persist(
     (set, get) => ({
@@ -90,7 +99,7 @@ export const useExamStore = create<ExamStore>()(
         set((state) => ({ scores: [score, ...state.scores] })),
     }),
     {
-      name: "laudo-amigavel-storage",
+      name: "nauta-storage",
     }
   )
 );

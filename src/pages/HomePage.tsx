@@ -60,7 +60,7 @@ export default function HomePage() {
       <div className="animate-reveal">
         <div className="flex items-center gap-2 mb-1">
           <Leaf className="w-5 h-5 text-primary" />
-          <span className="text-xs font-medium text-primary tracking-wide uppercase">Laudo Amigável</span>
+          <span className="text-xs font-medium text-primary tracking-wide uppercase">Nauta</span>
         </div>
         <h1 className="text-2xl font-semibold leading-tight mt-3">
           {getGreeting()}, {perfil.nome}

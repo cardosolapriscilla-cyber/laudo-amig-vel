@@ -592,7 +592,7 @@ export default function ResultPage() {
                   </button>
                   <button
                     onClick={async () => {
-                      const text = `Perguntas para minha próxima consulta:\n\n${resultado.perguntas_para_medico.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n— Laudo Amigável`;
+                      const text = `Perguntas para minha próxima consulta:\n\n${resultado.perguntas_para_medico.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n— Nauta`;
                       if (navigator.share) {
                         await navigator.share({ title: 'Perguntas para o médico', text });
                       } else {
