@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, FlaskConical, User, AlertTriangle } from "lucide-react";
+import { ArrowLeft, FlaskConical, User, AlertTriangle, Share2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts";
 import type { PilarScore } from "@/types/health";
 import CheckinSheet from "@/components/CheckinSheet";
+import ShareWithDoctorSheet from "@/components/ShareWithDoctorSheet";
 
 const statusColor: Record<string, string> = {
   otimo: "bg-primary",
@@ -154,6 +155,7 @@ export default function ScorePage() {
   const navigate = useNavigate();
   const { scores, exames } = useExamStore();
   const [showCheckin, setShowCheckin] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const latestScore = scores[0];
   const hasExames = exames.length > 0;
   const lastExameId = exames[0]?.id;
@@ -208,9 +210,19 @@ export default function ScorePage() {
 
   return (
     <div className="px-5 pt-14 pb-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground mb-6 active:scale-95 transition-transform">
-        <ArrowLeft className="w-4 h-4" /> Voltar
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-muted-foreground active:scale-95 transition-transform">
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </button>
+        <button
+          onClick={() => setShowShare(true)}
+          className="flex items-center gap-1.5 text-sm text-primary active:scale-95 transition-transform"
+          aria-label="Compartilhar com médico"
+        >
+          <Share2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Compartilhar com médico</span>
+        </button>
+      </div>
 
       <div className="flex flex-col items-center animate-reveal">
         <ScoreRing score={score_geral} size={180} />
@@ -255,6 +267,8 @@ export default function ScorePage() {
           ⚕️ O Índice de Saúde é uma estimativa baseada nos dados disponíveis. Não substitui avaliação médica.
         </p>
       </div>
+
+      <ShareWithDoctorSheet open={showShare} onOpenChange={setShowShare} />
     </div>
   );
 }
