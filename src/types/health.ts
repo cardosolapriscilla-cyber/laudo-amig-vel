@@ -152,3 +152,50 @@ export interface PerfilSaude {
   condicoes: string[];
   historicoFamiliar: string;
 }
+
+// --- Mapa de Saúde ---
+
+export interface SistemaStatus {
+  sistema: string;
+  status: "otimo" | "bom" | "atencao" | "alerta" | "sem_dados";
+  ultimo_exame: string | null;
+  achados_count: number;
+  achados_atencao: number;
+  parametros_recentes: {
+    nome: string;
+    tendencia: "melhora" | "estavel" | "atencao" | "piora";
+    ultimo_valor?: string;
+  }[];
+  narrativa: string;
+  acao_sugerida: string;
+}
+
+export interface MapaSaude {
+  gerado_em: string;
+  sistemas: SistemaStatus[];
+  resumo_geral: string;
+}
+
+// --- Recomendações Preventivas ---
+
+export interface RecomendacaoPreventiva {
+  id: string;
+  exame: string;
+  sistema: string;
+  prioridade: "alta" | "media" | "baixa";
+  motivo: string;
+  frequencia_recomendada: string;
+  ultimo_realizado: string | null;
+  proximo_recomendado: string | null;
+  esta_em_dia: boolean;
+  acao: "agendar" | "repetir_em_breve" | "em_dia";
+  fonte_guideline: string;
+}
+
+export interface ResultadoRecomendacoes {
+  gerado_em: string;
+  perfil_considerado: string;
+  recomendacoes: RecomendacaoPreventiva[];
+  proxima_revisao: string;
+  mensagem_motivacional: string;
+}
