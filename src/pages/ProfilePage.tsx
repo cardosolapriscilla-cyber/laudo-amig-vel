@@ -1,8 +1,9 @@
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Leaf } from "lucide-react";
+import { ArrowLeft, Leaf, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import WhatsAppConnect from "@/components/WhatsAppConnect";
+import { useAuth } from "@/providers/AuthProvider";
 
 const CONDICOES = [
   "Diabetes", "Hipertensão", "Hipotireoidismo", "Dislipidemia",
