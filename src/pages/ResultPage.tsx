@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check, Share2 } from "lucide-react";
+import { ArrowLeft, Loader2, CircleCheck, AlertTriangle, Clock, HelpCircle, Copy, Check, Share2, Stethoscope } from "lucide-react";
 import { explicarLaudo, compararExames } from "@/lib/claude";
 import { useState, useEffect } from "react";
 import type { ResultadoExplicador, ResultadoEvolutivo, ParametroEvolutivo, EvolucaoOrgao, Achado } from "@/types/health";
@@ -580,9 +580,16 @@ export default function ResultPage() {
           {/* Perguntas para médico */}
           {resultado.perguntas_para_medico?.length > 0 && (
             <div className="animate-reveal animate-reveal-delay-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h2 className="text-lg font-semibold">Perguntas para levar ao médico</h2>
                 <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/consulta")}
+                    className="flex items-center gap-1 text-xs text-primary active:scale-95 transition-transform"
+                  >
+                    <Stethoscope className="w-3.5 h-3.5" />
+                    Preparo de consulta
+                  </button>
                   <button
                     onClick={async () => {
                       const text = `Perguntas para minha próxima consulta:\n\n${resultado.perguntas_para_medico.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\n— Laudo Amigável`;

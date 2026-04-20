@@ -18,6 +18,7 @@ import AuthPage from "./pages/AuthPage";
 import BriefingPage from "./pages/BriefingPage";
 import MapaSaudePage from "./pages/MapaSaudePage";
 import RecomendacoesPage from "./pages/RecomendacoesPage";
+import ConsultaPage from "./pages/ConsultaPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function AppContent() {
         <Route path="/score" element={<ScorePage />} />
         <Route path="/mapa" element={<MapaSaudePage />} />
         <Route path="/prevencao" element={<RecomendacoesPage />} />
+        <Route path="/consulta" element={<ConsultaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>
