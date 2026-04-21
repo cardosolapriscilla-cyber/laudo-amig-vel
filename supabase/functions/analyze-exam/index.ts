@@ -183,9 +183,11 @@ serve(async (req) => {
       });
     }
 
-    const MAX_CHARS = 8000;
+    // Holter e laudos longos podem ter muitas páginas; aumentamos a janela mas
+    // protegemos contra payloads que estourariam o contexto do modelo.
+    const MAX_CHARS = 18000;
     const truncated = userMessage.length > MAX_CHARS
-      ? userMessage.slice(0, MAX_CHARS) + "\n\n[Texto truncado. Analise apenas o conteúdo disponível.]"
+      ? userMessage.slice(0, MAX_CHARS) + "\n\n[Texto truncado para caber na análise. Foque no conteúdo disponível.]"
       : userMessage;
 
     let content: unknown[];

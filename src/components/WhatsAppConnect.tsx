@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, Check, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useExamStore } from "@/stores/examStore";
+import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "@/hooks/use-toast";
 
 function formatPhone(value: string) {
@@ -17,22 +18,34 @@ function rawPhone(formatted: string) {
 
 export default function WhatsAppConnect() {
   const { perfil, exames } = useExamStore();
+  const { user } = useAuth();
   const [phone, setPhone] = useState("");
   const [connected, setConnected] = useState(false);
   const [connectedPhone, setConnectedPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
 
-  // Check localStorage for existing connection
+  // Carrega o telefone do WhatsApp do perfil do usuário logado
   useEffect(() => {
-    const saved = localStorage.getItem("whatsapp_phone");
-    if (saved) {
-      setConnected(true);
-      setConnectedPhone(saved);
-    }
-  }, []);
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("perfis")
+        .select("whatsapp_phone")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      if (data?.whatsapp_phone) {
+        setConnected(true);
+        setConnectedPhone(data.whatsapp_phone);
+      }
+    })();
+  }, [user]);
 
   const handleConnect = async () => {
+    if (!user) {
+      toast({ title: "Faça login primeiro", variant: "destructive" });
+      return;
+    }
     const digits = rawPhone(phone);
     if (digits.length !== 11) {
       toast({ title: "Número inválido", description: "Digite um número com DDD + 9 dígitos.", variant: "destructive" });
@@ -43,43 +56,65 @@ export default function WhatsAppConnect() {
     try {
       const fullPhone = "55" + digits;
 
-      // Upsert whatsapp_users
+      // 1) Salva no perfil (RLS por auth_user_id)
+      const { error: perfilError } = await supabase
+        .from("perfis")
+        .upsert(
+          { auth_user_id: user.id, whatsapp_phone: fullPhone },
+          { onConflict: "auth_user_id" }
+        );
+      if (perfilError) throw perfilError;
+
+      // 2) Cria/atualiza whatsapp_users vinculado ao auth_user_id
       const { data: existing } = await supabase
         .from("whatsapp_users")
         .select("id")
-        .eq("phone", fullPhone)
+        .eq("auth_user_id", user.id)
         .maybeSingle();
 
-      let userId: string;
+      let waUserId: string;
 
       if (existing) {
-        userId = existing.id;
-        await supabase.from("whatsapp_users").update({
-          nome: perfil.nome || null,
-          sexo: perfil.sexoBiologico || null,
-          data_nascimento: perfil.dataNascimento || null,
-          condicoes: perfil.condicoes.length > 0 ? perfil.condicoes : null,
-          historico_familiar: perfil.historicoFamiliar || null,
-          onboarding_completo: true,
-        }).eq("id", userId);
+        waUserId = existing.id;
+        const { error: updErr } = await supabase
+          .from("whatsapp_users")
+          .update({
+            phone: fullPhone,
+            nome: perfil.nome || null,
+            sexo: perfil.sexoBiologico || null,
+            data_nascimento: perfil.dataNascimento || null,
+            condicoes: perfil.condicoes.length > 0 ? perfil.condicoes : null,
+            historico_familiar: perfil.historicoFamiliar || null,
+            onboarding_completo: true,
+          })
+          .eq("id", waUserId);
+        if (updErr) throw updErr;
       } else {
-        const { data: newUser } = await supabase.from("whatsapp_users").insert({
-          phone: fullPhone,
-          nome: perfil.nome || null,
-          sexo: perfil.sexoBiologico || null,
-          data_nascimento: perfil.dataNascimento || null,
-          condicoes: perfil.condicoes.length > 0 ? perfil.condicoes : null,
-          historico_familiar: perfil.historicoFamiliar || null,
-          onboarding_completo: true,
-        }).select("id").single();
-        userId = newUser!.id;
+        const { data: newUser, error: insErr } = await supabase
+          .from("whatsapp_users")
+          .insert({
+            auth_user_id: user.id,
+            phone: fullPhone,
+            nome: perfil.nome || null,
+            sexo: perfil.sexoBiologico || null,
+            data_nascimento: perfil.dataNascimento || null,
+            condicoes: perfil.condicoes.length > 0 ? perfil.condicoes : null,
+            historico_familiar: perfil.historicoFamiliar || null,
+            onboarding_completo: true,
+          })
+          .select("id")
+          .single();
+        if (insErr) throw insErr;
+        waUserId = newUser!.id;
       }
 
-      // Sync last 5 exams
+      // 3) Sincroniza últimos 5 exames (best-effort, não quebra se falhar)
       const recentExams = exames.slice(0, 5);
+      let syncedCount = 0;
       for (const exam of recentExams) {
-        await supabase.from("whatsapp_exames").insert({
-          user_id: userId,
+        const { error: examErr } = await supabase.from("whatsapp_exames").insert({
+          auth_user_id: user.id,
+          user_id: waUserId,
           tipo: exam.tipo,
           nome: exam.nome,
           sistema: exam.sistema || null,
@@ -87,17 +122,26 @@ export default function WhatsAppConnect() {
           laboratorio: exam.laboratorio || null,
           texto_original: exam.textoOriginal,
           resumo: exam.resumo || null,
-          resultado_json: exam.resultado as any || null,
+          resultado_json: (exam.resultado as any) || null,
         });
+        if (!examErr) syncedCount++;
       }
 
-      localStorage.setItem("whatsapp_phone", fullPhone);
       setConnected(true);
       setConnectedPhone(fullPhone);
-      toast({ title: "WhatsApp conectado!", description: `${recentExams.length} exame(s) sincronizado(s).` });
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Erro ao conectar", description: "Tente novamente.", variant: "destructive" });
+      toast({
+        title: "WhatsApp conectado!",
+        description: syncedCount > 0
+          ? `${syncedCount} exame(s) sincronizado(s).`
+          : "Você já pode receber lembretes.",
+      });
+    } catch (err: any) {
+      console.error("WhatsApp connect error:", err);
+      toast({
+        title: "Erro ao conectar",
+        description: err?.message || "Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
