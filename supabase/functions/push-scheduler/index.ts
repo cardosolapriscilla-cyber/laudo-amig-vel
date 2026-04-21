@@ -84,12 +84,25 @@ async function jobLembretesPreventivos() {
     const body = bodyMap[diasRestantes] ??
       `É hora de ${l.exame} — data recomendada: ${new Date(l.data_recomendada).toLocaleDateString("pt-BR")}`;
 
+    // Verificar se há clínica associada ao sistema do lembrete
+    const { data: clinicaSugerida } = await supabase
+      .from("clinicas_usuario")
+      .select("id, nome, whatsapp")
+      .eq("auth_user_id", l.auth_user_id)
+      .contains("sistemas", [l.sistema])
+      .not("whatsapp", "is", null)
+      .maybeSingle();
+
+    const bodyComClinica = clinicaSugerida
+      ? `${body} Toque para enviar mensagem para ${clinicaSugerida.nome}.`
+      : body;
+
     const ok = await sendPush(l.auth_user_id, {
       title: "Nauta — Lembrete preventivo",
-      body,
+      body: bodyComClinica,
       tag: `lembrete-${l.id}`,
-      url: "/prevencao",
-      actions: [{ action: "ver", title: "Ver recomendações" }],
+      url: clinicaSugerida ? "/clinicas" : "/prevencao",
+      actions: [{ action: "ver", title: clinicaSugerida ? "Ver contato" : "Ver recomendações" }],
     });
 
     if (ok) {

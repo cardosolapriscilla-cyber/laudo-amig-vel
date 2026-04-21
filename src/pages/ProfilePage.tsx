@@ -1,5 +1,5 @@
 import { useExamStore } from "@/stores/examStore";
-import { ArrowLeft, Leaf, LogOut, Bell, BellOff } from "lucide-react";
+import { ArrowLeft, Leaf, LogOut, Bell, BellOff, Building2, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import WhatsAppConnect from "@/components/WhatsAppConnect";
@@ -162,6 +162,20 @@ export default function ProfilePage() {
             Notificações bloqueadas. Habilite nas configurações do navegador.
           </p>
         )}
+
+        {/* Meus contatos de saúde */}
+        <button
+          onClick={() => navigate("/clinicas")}
+          className="w-full flex items-center gap-3 p-4 bg-card rounded-xl shadow-sm text-left
+            hover:shadow-md active:scale-[0.98] transition-all"
+        >
+          <Building2 className="w-5 h-5 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">Meus contatos de saúde</p>
+            <p className="text-xs text-muted-foreground">Clínicas e médicos para agendar</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </button>
 
         {/* WhatsApp */}
         <div className="pt-2">
