@@ -109,11 +109,14 @@ export default function UploadPage() {
   const runDetect = useCallback(async (texto: string) => {
     setStep("detecting");
     setLoadingMsgIdx(0);
+    // Para detectar tipo, basta o início do laudo — evita estourar contexto em Holter, etc.
+    const sample = texto.length > 4000 ? texto.slice(0, 4000) : texto;
     try {
-      const result = await detectViaEdgeFunction(texto);
+      const result = await detectViaEdgeFunction(sample);
       setDetected(result);
       setStep("detected");
-    } catch {
+    } catch (e) {
+      console.warn("Detect fallback:", e);
       setDetected({
         tipo: "outros",
         nome: "Exame Médico",
@@ -232,7 +235,13 @@ export default function UploadPage() {
           .then((evo) => useExamStore.getState().updateExame(newId, { resultadoEvolutivo: evo }))
           .catch(() => {});
       }
-    } catch {
+    } catch (e: any) {
+      console.error("Análise falhou:", e);
+      setOcrError(
+        e?.message?.includes("truncad")
+          ? "Laudo muito longo. Tente enviar apenas as páginas com os resultados."
+          : "Não foi possível gerar a explicação agora. Salvamos o exame como pendente."
+      );
       addExame({ ...newExame, resumo: "Análise pendente" });
       navigate(`/resultado/${newId}`);
     }
