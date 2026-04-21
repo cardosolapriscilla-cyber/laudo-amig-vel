@@ -1,1 +1,4 @@
 project_id = "shodctiwgmhkvfvxgcdg"
+
+[functions.get-briefing]
+verify_jwt = false
