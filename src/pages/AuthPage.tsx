@@ -23,7 +23,10 @@ export default function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: true,
+        },
       });
       if (error) throw error;
       setSent(true);
