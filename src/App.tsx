@@ -20,6 +20,7 @@ import MapaSaudePage from "./pages/MapaSaudePage";
 import RecomendacoesPage from "./pages/RecomendacoesPage";
 import ConsultaPage from "./pages/ConsultaPage";
 import ConsultasAgendaPage from "./pages/ConsultasAgendaPage";
+import ClinicasPage from "./pages/ClinicasPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ function AppContent() {
         <Route path="/prevencao" element={<RecomendacoesPage />} />
         <Route path="/consulta" element={<ConsultaPage />} />
         <Route path="/consultas" element={<ConsultasAgendaPage />} />
+        <Route path="/clinicas" element={<ClinicasPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppShell>
