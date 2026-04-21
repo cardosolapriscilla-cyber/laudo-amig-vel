@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      clinicas_usuario: {
+        Row: {
+          auth_user_id: string
+          created_at: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          sistemas: string[] | null
+          telefone: string | null
+          tipo: string
+          verificado_em: string | null
+          whatsapp: string | null
+          whatsapp_valido: boolean | null
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string | null
+          especialidade?: string | null
+          id?: string
+          nome: string
+          sistemas?: string[] | null
+          telefone?: string | null
+          tipo: string
+          verificado_em?: string | null
+          whatsapp?: string | null
+          whatsapp_valido?: boolean | null
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          sistemas?: string[] | null
+          telefone?: string | null
+          tipo?: string
+          verificado_em?: string | null
+          whatsapp?: string | null
+          whatsapp_valido?: boolean | null
+        }
+        Relationships: []
+      }
       consultas_agendadas: {
         Row: {
           auth_user_id: string | null
