@@ -477,7 +477,7 @@ export default function ClinicasPage() {
       .select("*")
       .eq("auth_user_id", user.id)
       .order("nome");
-    setClinicas(data ?? []);
+    setClinicas((data ?? []) as Clinica[]);
     setLoading(false);
   }, [user]);
 
