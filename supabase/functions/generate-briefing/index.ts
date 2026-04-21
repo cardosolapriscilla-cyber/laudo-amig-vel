@@ -6,10 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const BRIEFING_PROMPTS: Record<string, string> = {
   Cardiologista: "Priorize: lipídeos (LDL, HDL, triglicerídeos), pressão arterial, glicemia, PCR, ECG. Destaque tendências cardiovasculares.",
@@ -25,11 +26,30 @@ serve(async (req) => {
   }
 
   try {
-    const { auth_user_id, especialidade } = await req.json();
-
-    if (!auth_user_id || !especialidade) {
+    // Validate JWT and derive user identity from token (do NOT trust body)
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "auth_user_id e especialidade são obrigatórios" }),
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: userData, error: authError } = await authClient.auth.getUser(token);
+    if (authError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const auth_user_id = userData.user.id;
+
+    const { especialidade } = await req.json();
+
+    if (!especialidade || typeof especialidade !== "string") {
+      return new Response(
+        JSON.stringify({ error: "especialidade é obrigatória" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

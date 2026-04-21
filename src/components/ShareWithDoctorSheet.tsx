@@ -41,7 +41,7 @@ export default function ShareWithDoctorSheet({ open, onOpenChange }: Props) {
       const especParaApi = especMap[especialidade] || especialidade;
 
       const { data, error } = await supabase.functions.invoke("generate-briefing", {
-        body: { auth_user_id: user.id, especialidade: especParaApi },
+        body: { especialidade: especParaApi },
       });
 
       if (error) throw error;

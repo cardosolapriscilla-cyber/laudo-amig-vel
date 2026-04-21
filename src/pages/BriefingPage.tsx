@@ -57,32 +57,21 @@ export default function BriefingPage() {
     if (!token) return;
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from("shared_briefings")
-          .select("briefing_json, especialidade, expires_at, created_at")
-          .eq("token", token)
-          .maybeSingle();
+        const { data, error } = await supabase.functions.invoke("get-briefing", {
+          body: { token },
+        });
 
-        if (error) throw error;
-        if (!data) {
-          setError("Briefing não encontrado.");
+        if (error || !data) {
+          const msg = (data as any)?.error || "Briefing não encontrado.";
+          setError(msg === "Briefing expirado"
+            ? "Este briefing expirou. Solicite um novo link ao paciente."
+            : msg);
           return;
         }
 
-        if (new Date(data.expires_at) < new Date()) {
-          setError("Este briefing expirou. Solicite um novo link ao paciente.");
-          return;
-        }
-
-        setBriefing(data.briefing_json as unknown as BriefingJson);
+        setBriefing(data.briefing_json as BriefingJson);
         setEspecialidade(data.especialidade || "");
         setCreatedAt(data.created_at || "");
-
-        // Register access (fire and forget)
-        await supabase
-          .from("shared_briefings")
-          .update({ accessed_at: new Date().toISOString() })
-          .eq("token", token);
       } catch (e: any) {
         console.error(e);
         setError("Não foi possível carregar o briefing.");
